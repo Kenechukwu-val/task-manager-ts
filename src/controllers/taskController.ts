@@ -4,6 +4,10 @@ import Task from '../models/Task';
 //Get all tasks for logged-in user
 export const getTasks = async (req: Request, res: Response) => {
     try{
+
+    if (!req.userId) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
         
         const tasks = await Task.find({ user: req.userId }).sort({ createdAt: -1 });
         res.json({ success: true, tasks });
@@ -16,6 +20,11 @@ export const getTasks = async (req: Request, res: Response) => {
 //Create a new task
 export const createTask = async (req: Request, res: Response) => {
     try{
+
+    if (!req.userId) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
         const task = new Task({
             ...req.body,
             user: req.userId
@@ -31,6 +40,10 @@ export const createTask = async (req: Request, res: Response) => {
 //Update a task
 export const updateTask = async ( req: Request, res: Response ) => {
     try{
+
+    if (!req.userId) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
         const task = await Task.findOneAndUpdate({
                 _id: req.params.id,
                 user: req.userId
@@ -53,6 +66,11 @@ export const updateTask = async ( req: Request, res: Response ) => {
 //Delete a task
 export const deleteTask = async ( req: Request, res: Response ) => {
     try{
+
+    if (!req.userId) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+    
         const task = await Task.findOneAndDelete({
             _id: req.params.id,
             user: req.userId
@@ -62,7 +80,7 @@ export const deleteTask = async ( req: Request, res: Response ) => {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
         res.json({ success: true, message: 'Task deleted successfully' });
-        
+
     } catch (error: any) {
             res.status(500).json({ success: false, message: error.message });
     }
