@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
-import { success } from 'zod';
+
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
