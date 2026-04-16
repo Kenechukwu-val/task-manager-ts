@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
+import authRoutes from './routes/authRoutes';
+
 dotenv.config();
 
 const app = express();
@@ -14,8 +16,15 @@ app.use(helmet()); // Security headers
 app.use(cors());   // Allow frontend to connect 
 app.use(express.json()); // Parse JSON bodies
 
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Test route
 app.get('/', (req, res) => {
-    res.json({ message: 'Task Manager API is running! (Typescript version)' });
+    res.json({ 
+        message: 'Task Manager API (TypeScript) is running! 🚀',
+        version: '1.0'
+    });
 });
 
 // mongoose.connect(process.env.MONGO_URI as string)
