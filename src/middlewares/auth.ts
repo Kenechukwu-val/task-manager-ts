@@ -5,6 +5,14 @@ interface JwtPayload{
     userId: string;
 }
 
+declare global {
+    namespace Express {
+        interface Request {
+        userId?: string;
+        }
+    }
+}
+
 export const authMiddleware = ( req: Request, res: Response, next: NextFunction ) => {
     try{
         const token = req.header('Authorization')?.replace('Bearer ', '');
