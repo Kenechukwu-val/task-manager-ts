@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
+import { success } from 'zod';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -36,6 +37,37 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     try{
         const { email, password } = req.body;
-        
+
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Check if password is correct
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Create JWT token
+        const token = jwt.sign(
+            { userId: user._id },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+        });
+    } catch(error: any) {
+        res.status(500).json({ success: false, message: error.message });
     }
 }
