@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Task from '../models/Task';
+import { emitTaskEvent } from '../sockets/socketHandler';
 
 //Get all tasks for logged-in user
 export const getTasks = async (req: Request, res: Response) => {
@@ -31,6 +32,9 @@ export const createTask = async (req: Request, res: Response) => {
         });
         await task.save();
 
+        const io = req.app.get('io');
+        emitTaskEvent(io, 'taskCreated', task, req.userId);
+
         res.status(201).json({ success: true, task });
     } catch ( error: any) {
         res.status(500).json({ success: false, message: error.message });
@@ -56,6 +60,9 @@ export const updateTask = async ( req: Request, res: Response ) => {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
+        const io = req.app.get('io');
+        emitTaskEvent(io, 'taskUpdated', task, req.userId);
+
         res.json({ success: true, task });
 
     } catch (error: any) {
@@ -79,6 +86,10 @@ export const deleteTask = async ( req: Request, res: Response ) => {
         if ( !task ) {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
+
+        const io = req.app.get('io');
+        emitTaskEvent(io, 'taskDeleted', { taskId: req.params.id }, req.userId);
+
         res.json({ success: true, message: 'Task deleted successfully' });
 
     } catch (error: any) {
