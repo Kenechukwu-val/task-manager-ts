@@ -3,8 +3,6 @@ import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
 
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-
 // Register a new user
 export const register = async (req: Request, res: Response) => {
     try{
@@ -50,10 +48,15 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            return res.status(500).json({ success: false, message: 'JWT secret not configured' });
+        }
+
         // Create JWT token
         const token = jwt.sign(
             { userId: user._id },
-            JWT_SECRET,
+            jwtSecret,
             { expiresIn: '7d' }
         );
 
