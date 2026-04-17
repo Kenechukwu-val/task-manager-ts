@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Test - Task Manager</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #log { background: #f4f4f4; padding: 10px; height: 400px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>Real-time Task Test</h1>
+    <input type="text" id="token" placeholder="Paste your JWT token here" style="width: 400px;">
+    <button onclick="connectSocket()">Connect Socket</button>
+    
+    <h3>Live Events:</h3>
+    <div id="log"></div>
+
+    <script>
+        let socket;
+
+        function connectSocket() {
+        const token = document.getElementById('token').value.trim();
+        if (!token) return alert('Please paste your JWT token');
+
+        socket = io('http://localhost:5000', {
+            auth: { token: token }
+        });
+
+        socket.on('connect', () => {
+            addLog('✅ Connected to Socket.io');
+        });
+
+        socket.on('taskCreated', (task) => {
+            addLog(`📌 New Task Created: ${task.title}`);
+        });
+
+        socket.on('taskUpdated', (task) => {
+            addLog(`✏️ Task Updated: ${task.title}`);
+        });
+
+        socket.on('taskDeleted', (data) => {
+            addLog(`🗑️ Task Deleted: ID ${data.taskId}`);
+        });
+
+        socket.on('disconnect', () => {
+            addLog('❌ Disconnected');
+        });
+        }
+
+        function addLog(message) {
+        const log = document.getElementById('log');
+        log.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
+        log.scrollTop = log.scrollHeight;
+        }
+    </script>
+</body>
+</html>
