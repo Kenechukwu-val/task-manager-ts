@@ -29,9 +29,9 @@ app.get('/', (req, res) => {
     });
 });
 
-// mongoose.connect(process.env.MONGO_URI as string)
-// .then(() => console.log('✅ Connected to MongoDB'))
-// .catch(err => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI as string)
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
 
 // Start the server
