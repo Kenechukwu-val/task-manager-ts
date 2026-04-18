@@ -53,7 +53,7 @@ export const updateTask = async ( req: Request, res: Response ) => {
                 user: req.userId
         },
         req.body,
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     );
 
         if ( !task ) {

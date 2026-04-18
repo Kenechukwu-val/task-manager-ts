@@ -146,7 +146,7 @@
 
         if (socket) socket.disconnect();
 
-        socket = io('http://localhost:5000', {
+        socket = io('http://localhost:5000', { 
             auth: { token: currentToken },
             reconnection: true
         });
