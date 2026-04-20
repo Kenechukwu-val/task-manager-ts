@@ -5,7 +5,12 @@ import bcrypt from 'bcryptjs';
 export interface IUser {
     name: string;
     email: string;
-    password: string;
+    password?: string;
+    googleId?: string;
+    githubId?: string;
+    avatar?: string;
+    provider?: 'local' | 'google' | 'github';
+
 }
 
 // Interface for the full Mongoose Document (includes _id, timestamps, methods, etc.)
@@ -34,8 +39,15 @@ const UserSchema: Schema<IUserDocument> = new Schema(
         },
         password: {
             type: String,
-            required: true,
             minlength: 6,
+        },
+        googleId: { type: String, unique: true, sparse: true },
+        githubId: { type: String, unique: true, sparse: true },
+        avatar: String,
+        provider: {
+            type: String,
+            enum: ['local', 'google', 'github'],
+            default: 'local',
         },
     },
     {
@@ -45,21 +57,18 @@ const UserSchema: Schema<IUserDocument> = new Schema(
 
 // Pre-save hook: Hash password before saving (modern async style)
 UserSchema.pre('save', async function (this: IUserDocument) {
-  // 'this' is typed as IUserDocument thanks to the generic
-    if (!this.isModified('password')) {
-        return; // No need to call next()
-    }
 
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    if (this.password &&this.isModified('password')) {
+
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+    }
 });
 
 // Instance method to compare password
-UserSchema.methods.comparePassword = async function (
-    this: IUserDocument,
-    candidatePassword: string
-): Promise<boolean> {
-    return bcrypt.compare(candidatePassword, this.password);
-};
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+    return this.password ? await bcrypt.compare(candidatePassword, this.password) : false;
+}
+
 
 export default mongoose.model<IUserDocument, IUserModel>('User', UserSchema);
