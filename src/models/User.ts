@@ -10,6 +10,8 @@ export interface IUser {
     githubId?: string;
     avatar?: string;
     provider?: 'local' | 'google' | 'github';
+    isEmailVerified?: boolean; 
+    lastLogin?: Date;
 
 }
 
@@ -18,7 +20,6 @@ export interface IUserDocument extends IUser, Document {
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-// Optional: Interface for the Model (if you add static methods later)
 export interface IUserModel extends Model<IUserDocument> {
   // Add static methods here in the future, e.g., findByEmail()
 }
@@ -49,6 +50,8 @@ const UserSchema: Schema<IUserDocument> = new Schema(
             enum: ['local', 'google', 'github'],
             default: 'local',
         },
+        isEmailVerified: { type: Boolean, default: false },
+        lastLogin: { type: Date, default: null }
     },
     {
         timestamps: true, // Adds createdAt and updatedAt automatically
@@ -65,10 +68,19 @@ UserSchema.pre('save', async function (this: IUserDocument) {
     }
 });
 
-// Instance method to compare password
-UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-    return this.password ? await bcrypt.compare(candidatePassword, this.password) : false;
-}
+// Method to compare password (safe for OAuth users)
+UserSchema.methods.comparePassword = async function (
+    this: IUserDocument,
+    candidatePassword: string
+): Promise<boolean> {
+    if (!this.password) return false;
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Static method to find or create user (useful for OAuth)
+UserSchema.statics.findOrCreate = async function (profile: any, provider: string) {
+    return this.findOne({ [`${provider}Id`]: profile.id });
+};
 
 
 export default mongoose.model<IUserDocument, IUserModel>('User', UserSchema);
