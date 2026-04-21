@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import passport from 'passport';
 import http from 'http';
 
 import authRoutes from './routes/authRoutes';
@@ -25,6 +26,7 @@ app.set('io', io); // Make Socket.IO instance available in routes/controllers
 app.use(helmet()); // Security headers
 app.use(cors());   // Allow frontend to connect 
 app.use(express.json()); // Parse JSON bodies
+app.use(passport.initialize()); // Initialize Passport for authentication
 
 // Routes
 app.use('/api/auth', authRoutes);
