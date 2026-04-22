@@ -52,7 +52,7 @@ export const login = async (req: Request, res: Response) => {
         if (!jwtSecret) {
             return res.status(500).json({ success: false, message: 'JWT secret not configured' });
         }
-
+        
         // Create JWT token
         const token = jwt.sign(
             { userId: user._id },
