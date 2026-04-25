@@ -29,14 +29,14 @@
             <div id="loginForm" class="space-y-4">
             <!-- Social Login Buttons -->
             <div class="grid grid-cols-2 gap-3">
-                <a href="http://localhost:5000/api/auth/google" target="_blank" 
-                    class="inline-flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition">
+                <button onclick="handleSocialLogin('google')" 
+                    class="inline-flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition cursor-pointer">
                     Google
-                </a>
-                <a href="http://localhost:5000/api/auth/github" target="_blank" 
-                    class="inline-flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-medium transition">
+                </button>
+                <button onclick="handleSocialLogin('github')" 
+                    class="inline-flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-medium transition cursor-pointer">
                     GitHub
-                </a>
+                </button>
             </div>
 
             <!-- Divider -->
@@ -76,14 +76,14 @@
             <div id="registerForm" class="space-y-4 hidden">
             <!-- Social Login Buttons -->
             <div class="grid grid-cols-2 gap-3">
-                <a href="http://localhost:5000/api/auth/google" target="_blank" 
-                    class="inline-flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition">
+                <button onclick="handleSocialLogin('google')" 
+                    class="inline-flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition cursor-pointer">
                     Google
-                </a>
-                <a href="http://localhost:5000/api/auth/github" target="_blank" 
-                    class="inline-flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-medium transition">
+                </button>
+                <button onclick="handleSocialLogin('github')" 
+                    class="inline-flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-medium transition cursor-pointer">
                     GitHub
-                </a>
+                </button>
             </div>
 
             <!-- Divider -->
@@ -238,6 +238,64 @@
             loginForm.classList.toggle('hidden');
             registerForm.classList.toggle('hidden');
         }
+
+        // Handle Social Login - Open popup window
+        function handleSocialLogin(provider) {
+            // Get the directory of the current page and construct callback URL
+            const currentPath = window.location.pathname;
+            const directory = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            const callbackUrl = window.location.origin + directory + 'auth-callback.html';
+            
+            const authUrl = `http://localhost:5000/api/auth/${provider}?redirect=${encodeURIComponent(callbackUrl)}`;
+            
+            // Open popup window
+            const width = 500;
+            const height = 600;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+            
+            window.authPopup = window.open(
+                authUrl,
+                'oauth-login',
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            );
+
+            // Show loading status
+            const authStatus = document.getElementById('authStatus');
+            authStatus.innerHTML = '<span class="text-blue-600">🔄 Authenticating with ' + (provider === 'google' ? 'Google' : 'GitHub') + '...</span>';
+        }
+
+        // Listen for messages from the auth callback window
+        window.addEventListener('message', (event) => {
+            console.log('Message received from:', event.origin);
+            console.log('Message data:', event.data);
+            
+            const data = event.data;
+
+            if (data.type === 'AUTH_SUCCESS' && data.token) {
+                console.log('Auth success! Token received');
+                
+                // Auto-login with received token
+                currentToken = data.token;
+                localStorage.setItem('token', currentToken);
+                
+                const authStatus = document.getElementById('authStatus');
+                authStatus.innerHTML = `<span class="text-green-600">✅ Welcome! Logging you in...</span>`;
+                
+                showConnectedUI();
+                connectSocket();
+                
+                setTimeout(() => {
+                    authStatus.textContent = '';
+                }, 2000);
+            } else if (data.type === 'AUTH_ERROR') {
+                console.log('Auth error:', data.message);
+                
+                // Show error message
+                const authStatus = document.getElementById('authStatus');
+                authStatus.innerHTML = `<span class="text-red-600">❌ ${data.message || 'Authentication failed'}</span>`;
+            }
+        });
 
         // Handle Login
         async function handleLogin() {

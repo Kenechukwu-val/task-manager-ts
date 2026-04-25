@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 import passport from './config/passport';
 import http from 'http';
 
@@ -29,6 +30,7 @@ app.use(cors({    // Allow frontend to connect to backend
     credentials: true,
 }));   
 app.use(express.json()); // Parse JSON bodies
+app.use(cookieParser()); // Parse cookies
 app.use(passport.initialize()); // Initialize Passport for authentication
 
 // Routes
