@@ -20,53 +20,81 @@
         <p class="text-gray-600">Real-time CRUD Test Page</p>
         </div>
 
-        <!-- Token Input -->
-        <div class="bg-white p-6 rounded-2xl shadow mb-8">
-        <div class="flex flex-col gap-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-                <a href="http://localhost:5000/api/auth/google" target="_blank" 
-                    class="inline-flex items-center justify-center px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition">
-                Login with Google
-                </a>
-                <a href="http://localhost:5000/api/auth/github" target="_blank" 
-                    class="inline-flex items-center justify-center px-5 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-medium transition">
-                Login with GitHub
-                </a>
-            </div>
+        <!-- Authentication Section -->
+        <div id="authSection" class="bg-white p-6 rounded-2xl shadow mb-8">
+        <div class="max-w-md mx-auto">
+            <h2 class="text-2xl font-bold mb-6 text-center">Sign In</h2>
+            
+            <!-- Login Tab -->
+            <div id="loginForm" class="space-y-4">
+            <input 
+                type="email" 
+                id="loginEmail" 
+                placeholder="Email address"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            >
+            <input 
+                type="password" 
+                id="loginPassword" 
+                placeholder="Password"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            >
             <button 
-                onclick="connectSocket()"
-                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition">
-                Connect Socket
+                onclick="handleLogin()"
+                class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition">
+                Login
             </button>
+            <p class="text-center text-sm text-gray-600">
+                Don't have an account? <button onclick="toggleAuthForm()" class="text-blue-600 hover:underline font-medium">Sign up</button>
+            </p>
             </div>
 
-            <div class="flex gap-3 items-center">
+            <!-- Register Form -->
+            <div id="registerForm" class="space-y-4 hidden">
             <input 
                 type="text" 
-                id="token" 
-                placeholder="Paste your JWT token here..."
-                class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 font-mono text-sm"
+                id="registerName" 
+                placeholder="Full name"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
             >
+            <input 
+                type="email" 
+                id="registerEmail" 
+                placeholder="Email address"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            >
+            <input 
+                type="password" 
+                id="registerPassword" 
+                placeholder="Password"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            >
+            <button 
+                onclick="handleRegister()"
+                class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition">
+                Create Account
+            </button>
+            <p class="text-center text-sm text-gray-600">
+                Already have an account? <button onclick="toggleAuthForm()" class="text-blue-600 hover:underline font-medium">Sign in</button>
+            </p>
             </div>
-            <p class="text-sm text-gray-500">Use the provider buttons to open OAuth login. Copy the returned <code>token</code> and paste it above, then connect.</p>
-            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-            <p class="text-sm text-gray-600 mb-3">Paste the OAuth JSON response here to auto-fill the token:</p>
-            <textarea id="oauthResponse" rows="5" placeholder='{"success": true, "token": "..."}'
-                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 font-mono text-sm"></textarea>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
-                <button onclick="loadTokenFromResponse()"
-                        class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition">
-                Load Token from Response
-                </button>
-                <button onclick="clearOAuthResponse()"
-                        class="w-full sm:w-auto px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium transition">
-                Clear Response
-                </button>
+
+            <p id="authStatus" class="text-sm font-medium text-center mt-4"></p>
+        </div>
+        </div>
+
+        <!-- Connected Section (Hidden until authenticated) -->
+        <div id="connectedSection" class="hidden bg-white p-6 rounded-2xl shadow mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+            <h2 class="text-lg font-semibold">Connected</h2>
+            <p id="status" class="text-sm text-green-600">✅ Ready to use</p>
             </div>
-            <p id="oauthHelper" class="mt-3 text-xs text-gray-500"></p>
-            </div>
-            <p id="status" class="text-sm font-medium"></p>
+            <button 
+                onclick="handleLogout()"
+                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition">
+                Logout
+            </button>
         </div>
         </div>
 
@@ -157,232 +185,320 @@
         let currentToken = null;
         let currentEditingTaskId = null;
 
-        function addLog(message, type = 'info') {
-        const log = document.getElementById('log');
-        const time = new Date().toLocaleTimeString();
-        let prefix = '📌';
-        
-        if (type === 'error') prefix = '❌';
-        else if (type === 'update') prefix = '✏️';
-        else if (type === 'delete') prefix = '🗑️';
+        // Toggle between login and register forms
+        function toggleAuthForm() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            loginForm.classList.toggle('hidden');
+            registerForm.classList.toggle('hidden');
+        }
 
-        log.innerHTML += `<div class="mb-1">[${time}] ${prefix} ${message}</div>`;
-        log.scrollTop = log.scrollHeight;
+        // Handle Login
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const authStatus = document.getElementById('authStatus');
+
+            if (!email || !password) {
+                authStatus.innerHTML = '<span class="text-red-600">❌ Please enter email and password</span>';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success && data.token) {
+                    currentToken = data.token;
+                    localStorage.setItem('token', currentToken);
+                    authStatus.innerHTML = '<span class="text-green-600">✅ Login successful!</span>';
+                    showConnectedUI();
+                    connectSocket();
+                    setTimeout(() => {
+                        authStatus.textContent = '';
+                    }, 2000);
+                } else {
+                    authStatus.innerHTML = `<span class="text-red-600">❌ ${data.message || 'Login failed'}</span>`;
+                }
+            } catch (err) {
+                authStatus.innerHTML = '<span class="text-red-600">❌ Error logging in</span>';
+            }
+        }
+
+        // Handle Registration
+        async function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const authStatus = document.getElementById('authStatus');
+
+            if (!name || !email || !password) {
+                authStatus.innerHTML = '<span class="text-red-600">❌ Please fill all fields</span>';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    authStatus.innerHTML = '<span class="text-green-600">✅ Account created! Please log in.</span>';
+                    setTimeout(() => {
+                        toggleAuthForm();
+                        document.getElementById('loginEmail').value = email;
+                        document.getElementById('registerName').value = '';
+                        document.getElementById('registerEmail').value = '';
+                        document.getElementById('registerPassword').value = '';
+                        authStatus.textContent = '';
+                    }, 1500);
+                } else {
+                    authStatus.innerHTML = `<span class="text-red-600">❌ ${data.message || 'Registration failed'}</span>`;
+                }
+            } catch (err) {
+                authStatus.innerHTML = '<span class="text-red-600">❌ Error registering</span>';
+            }
+        }
+
+        // Handle Logout
+        function handleLogout() {
+            currentToken = null;
+            localStorage.removeItem('token');
+            if (socket) socket.disconnect();
+            
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('connectedSection').classList.add('hidden');
+            document.getElementById('tasks').innerHTML = '';
+            document.getElementById('log').innerHTML = '';
+            
+            // Reset forms
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Show connected UI
+        function showConnectedUI() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('connectedSection').classList.remove('hidden');
+        }
+
+        // Check for existing token on page load
+        function checkExistingToken() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                currentToken = token;
+                showConnectedUI();
+                connectSocket();
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            let prefix = '📌';
+            
+            if (type === 'error') prefix = '❌';
+            else if (type === 'update') prefix = '✏️';
+            else if (type === 'delete') prefix = '🗑️';
+
+            log.innerHTML += `<div class="mb-1">[${time}] ${prefix} ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
         }
 
         function connectSocket() {
-        const tokenInput = document.getElementById('token');
-        currentToken = tokenInput.value.trim();
+            if (!currentToken) return alert('Please log in first');
 
-        if (!currentToken) return alert('Please paste your JWT token');
+            if (socket) socket.disconnect();
 
-        if (socket) socket.disconnect();
-
-        socket = io('http://localhost:5000', { 
-            auth: { token: currentToken },
-            reconnection: true
-        });
-
-        socket.on('connect', () => {
-            document.getElementById('status').innerHTML = 
-            `<span class="text-green-600">✅ Connected successfully</span>`;
-            addLog('Connected to real-time server');
-            loadTasks();
-        });
-
-        socket.on('taskCreated', () => { addLog('New task created'); loadTasks(); });
-        socket.on('taskUpdated', () => { addLog('Task updated', 'update'); loadTasks(); });
-        socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
-
-        socket.on('disconnect', () => {
-            document.getElementById('status').innerHTML = `<span class="text-red-600">❌ Disconnected</span>`;
-        });
-        }
-
-        function loadTokenFromResponse() {
-        const responseInput = document.getElementById('oauthResponse');
-        const helper = document.getElementById('oauthHelper');
-        helper.textContent = '';
-
-        if (!responseInput.value.trim()) {
-            return alert('Paste the OAuth JSON response first.');
-        }
-
-        try {
-            const parsed = JSON.parse(responseInput.value);
-            const token = parsed.token || parsed?.data?.token;
-
-            if (!token) {
-            throw new Error('Token not found in response');
-            }
-
-            document.getElementById('token').value = token;
-            helper.textContent = 'Token loaded successfully. Click Connect Socket.';
-        } catch (error) {
-            helper.textContent = 'Invalid JSON response. Make sure the response contains a token field.';
-            alert('Could not parse OAuth response. Paste the JSON and try again.');
-        }
-        }
-
-        function clearOAuthResponse() {
-        document.getElementById('oauthResponse').value = '';
-        document.getElementById('oauthHelper').textContent = '';
-        }
-
-        // Create Task
-        async function createTask() {
-        if (!currentToken) return alert('Please connect socket first');
-
-        const taskData = {
-            title: document.getElementById('title').value.trim(),
-            description: document.getElementById('description').value.trim(),
-            priority: document.getElementById('priority').value,
-            dueDate: document.getElementById('dueDate').value ? 
-                    new Date(document.getElementById('dueDate').value).toISOString() : null
-        };
-
-        if (!taskData.title) return alert('Title is required');
-
-        try {
-            const res = await fetch('http://localhost:5000/api/tasks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: JSON.stringify(taskData)
+            socket = io('http://localhost:5000', { 
+                auth: { token: currentToken },
+                reconnection: true
             });
 
-            const data = await res.json();
-            if (data.success) {
-            addLog(`Task created: ${taskData.title}`);
-            // Clear form
-            document.getElementById('title').value = '';
-            document.getElementById('description').value = '';
-            loadTasks();
-            } else {
-            addLog(`Failed: ${data.message}`, 'error');
-            }
-        } catch (err) {
-            addLog('Error creating task', 'error');
+            socket.on('connect', () => {
+                document.getElementById('status').innerHTML = 
+                    `<span class="text-green-600">✅ Connected to real-time server</span>`;
+                addLog('Connected to real-time server');
+                loadTasks();
+            });
+
+            socket.on('taskCreated', () => { addLog('New task created'); loadTasks(); });
+            socket.on('taskUpdated', () => { addLog('Task updated', 'update'); loadTasks(); });
+            socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
+
+            socket.on('disconnect', () => {
+                document.getElementById('status').innerHTML = `<span class="text-red-600">❌ Disconnected</span>`;
+            });
         }
+        
+        // Create Task
+        async function createTask() {
+            if (!currentToken) return alert('Please log in first');
+
+            const taskData = {
+                title: document.getElementById('title').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                priority: document.getElementById('priority').value,
+                dueDate: document.getElementById('dueDate').value ? 
+                        new Date(document.getElementById('dueDate').value).toISOString() : null
+            };
+
+            if (!taskData.title) return alert('Title is required');
+
+            try {
+                const res = await fetch('http://localhost:5000/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`Task created: ${taskData.title}`);
+                    // Clear form
+                    document.getElementById('title').value = '';
+                    document.getElementById('description').value = '';
+                    loadTasks();
+                } else {
+                    addLog(`Failed: ${data.message}`, 'error');
+                }
+            } catch (err) {
+                addLog('Error creating task', 'error');
+            }
         }
 
         // Load Tasks
         async function loadTasks() {
-        if (!currentToken) return;
+            if (!currentToken) return;
 
-        try {
-            const res = await fetch('http://localhost:5000/api/tasks', {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('http://localhost:5000/api/tasks', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
 
-            if (data.success) {
-            const container = document.getElementById('tasks');
-            container.innerHTML = data.tasks.length === 0 
-                ? `<p class="text-gray-500 text-center py-8">No tasks yet. Create one above!</p>`
-                : data.tasks.map(task => `
-                <div class="task-card bg-white border border-gray-200 rounded-2xl p-5">
-                    <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-semibold text-lg">${task.title}</h3>
-                        <p class="text-gray-600 text-sm mt-1">${task.description || 'No description'}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="editTask('${task._id}', '${task.title}', '${task.description || ''}', '${task.priority}', '${task.status}')" 
-                                class="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl transition">
-                        Edit
-                        </button>
-                        <button onclick="deleteTask('${task._id}', '${task.title}')" 
-                                class="px-4 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-xl transition">
-                        Delete
-                        </button>
-                    </div>
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                    <span class="text-xs px-3 py-1 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-700' : task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
-                        ${task.priority}
-                    </span>
-                    <span class="text-xs px-3 py-1 bg-gray-100 text-gray-700 rounded-full">${task.status}</span>
-                    </div>
-                </div>
-                `).join('');
+                if (data.success) {
+                    const container = document.getElementById('tasks');
+                    container.innerHTML = data.tasks.length === 0 
+                        ? `<p class="text-gray-500 text-center py-8">No tasks yet. Create one above!</p>`
+                        : data.tasks.map(task => `
+                        <div class="task-card bg-white border border-gray-200 rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-lg">${task.title}</h3>
+                                <p class="text-gray-600 text-sm mt-1">${task.description || 'No description'}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editTask('${task._id}', '${task.title}', '${task.description || ''}', '${task.priority}', '${task.status}')" 
+                                        class="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl transition">
+                                Edit
+                                </button>
+                                <button onclick="deleteTask('${task._id}', '${task.title}')" 
+                                        class="px-4 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-xl transition">
+                                Delete
+                                </button>
+                            </div>
+                            </div>
+                            <div class="flex gap-2 mt-4">
+                            <span class="text-xs px-3 py-1 rounded-full ${task.priority === 'high' ? 'bg-red-100 text-red-700' : task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
+                                ${task.priority}
+                            </span>
+                            <span class="text-xs px-3 py-1 bg-gray-100 text-gray-700 rounded-full">${task.status}</span>
+                            </div>
+                        </div>
+                        `).join('');
+                }
+            } catch (err) {
+                console.error(err);
             }
-        } catch (err) {
-            console.error(err);
-        }
         }
 
         // Edit Task (Open Modal)
         function editTask(id, title, description, priority, status) {
-        currentEditingTaskId = id;
-        document.getElementById('editTitle').value = title;
-        document.getElementById('editDescription').value = description;
-        document.getElementById('editPriority').value = priority;
-        document.getElementById('editStatus').value = status;
-        document.getElementById('updateModal').classList.remove('hidden');
+            currentEditingTaskId = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editPriority').value = priority;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('updateModal').classList.remove('hidden');
         }
 
         function closeModal() {
-        document.getElementById('updateModal').classList.add('hidden');
+            document.getElementById('updateModal').classList.add('hidden');
         }
 
         // Save Updated Task
         async function saveUpdate() {
-        if (!currentEditingTaskId || !currentToken) return;
+            if (!currentEditingTaskId || !currentToken) return;
 
-        const updatedData = {
-            title: document.getElementById('editTitle').value.trim(),
-            description: document.getElementById('editDescription').value.trim(),
-            priority: document.getElementById('editPriority').value,
-            status: document.getElementById('editStatus').value
-        };
+            const updatedData = {
+                title: document.getElementById('editTitle').value.trim(),
+                description: document.getElementById('editDescription').value.trim(),
+                priority: document.getElementById('editPriority').value,
+                status: document.getElementById('editStatus').value
+            };
 
-        try {
-            const res = await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: JSON.stringify(updatedData)
-            });
+            try {
+                const res = await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(updatedData)
+                });
 
-            const data = await res.json();
-            if (data.success) {
-            addLog(`Task updated successfully`, 'update');
-            closeModal();
-            loadTasks();
-            } else {
-            addLog(`Update failed: ${data.message}`, 'error');
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`Task updated successfully`, 'update');
+                    closeModal();
+                    loadTasks();
+                } else {
+                    addLog(`Update failed: ${data.message}`, 'error');
+                }
+            } catch (err) {
+                addLog('Error updating task', 'error');
             }
-        } catch (err) {
-            addLog('Error updating task', 'error');
-        }
         }
 
         // Delete Task
         async function deleteTask(id, title) {
-        if (!confirm(`Delete task "${title}"?`)) return;
+            if (!confirm(`Delete task "${title}"?`)) return;
 
-        try {
-            const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
+            try {
+                const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
 
-            const data = await res.json();
-            if (data.success) {
-            addLog(`Task "${title}" deleted`, 'delete');
-            loadTasks();
-            } else {
-            addLog(`Delete failed: ${data.message}`, 'error');
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`Task "${title}" deleted`, 'delete');
+                    loadTasks();
+                } else {
+                    addLog(`Delete failed: ${data.message}`, 'error');
+                }
+            } catch (err) {
+                addLog('Error deleting task', 'error');
             }
-        } catch (err) {
-            addLog('Error deleting task', 'error');
         }
-        }
+
+        // Initialize on page load
+        window.addEventListener('load', checkExistingToken);
     </script>
 </body>
 </html>
