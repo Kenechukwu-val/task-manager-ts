@@ -3,9 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import cookieParser from 'cookie-parser';
-import passport from './config/passport';
 import http from 'http';
+import passport from './config/passport';   // ← Import Passport config
 
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
@@ -16,42 +15,66 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create HTTP server ( needed for Socket.IO to work with Express )
+// Create HTTP server (required for Socket.io)
 const httpServer = http.createServer(app);
 
-const io = setupSocket(httpServer); // Initialize Socket.IO with the HTTP server
+// Initialize Socket.io
+const io = setupSocket(httpServer);
 
-app.set('io', io); // Make Socket.IO instance available in routes/controllers
+// Make io available to controllers
+app.set('io', io);
 
+// ======================
 // Middleware
-app.use(helmet()); // Security headers
-app.use(cors({    // Allow frontend to connect to backend
-    origin: '*',
+// ======================
+app.use(helmet());
+app.use(cors({
+    origin: '*',                    
     credentials: true,
-}));   
-app.use(express.json()); // Parse JSON bodies
-app.use(cookieParser()); // Parse cookies
-app.use(passport.initialize()); // Initialize Passport for authentication
+}));
+app.use(express.json());
 
+// Initialize Passport (Important for OAuth)
+app.use(passport.initialize());
+
+// ======================
 // Routes
+// ======================
 app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes); 
+app.use('/api/tasks', taskRoutes);
 
 // Test route
 app.get('/', (req, res) => {
     res.json({ 
-        message: 'Task Manager API (TypeScript) is running! 🚀',
-        version: '1.0'
+        message: 'Task Manager API with Google & GitHub OAuth is running! 🚀',
+        version: '1.2'
     });
 });
 
-mongoose.connect(process.env.MONGO_URI as string)
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+// ======================
+// MongoDB Connection
+// ======================
+const connectDB = async () => {
+    try {
+    if (!process.env.MONGO_URI) {
+        throw new Error('MONGO_URI is not defined in .env file');
+    }
+    await mongoose.connect(process.env.MONGO_URI);
+        console.log('✅ MongoDB connected successfully');
+    } catch (error: any) {
+        console.error('❌ MongoDB connection error:', error.message);
+        process.exit(1);
+    }
+};
 
+connectDB();
 
-// Start the server
+// ======================
+// Start Server
+// ======================
 httpServer.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`🔌 Socket.io is ready for real-time connections`);
-})
+    console.log(`🔌 Socket.io is ready`);
+    console.log(`🔑 Google Login: http://localhost:5000/api/auth/google`);
+    console.log(`🔑 GitHub Login: http://localhost:5000/api/auth/github`);
+});
