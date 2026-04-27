@@ -17,46 +17,25 @@ export const googleCallback = (req: Request, res: Response) => {
     const user = req.user as any;
 
     if (!user) {
-        return res.redirect('/login?error=auth_failed');
+        return res.redirect('/test-socket.html?error=google-failed');
     }
 
     const token = generateToken(user);
 
-    // In production, you would redirect to your frontend with the token
-    // For now, we'll return JSON so you can test easily
-    res.json({
-        success: true,
-        message: 'Google login successful',
-        token,
-        user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        provider: user.provider,
-        },
-    });
+    //Redirect to frontend with token
+    res.redirect(`/test-socket.html?token=${encodeURIComponent(token)}&name=${encodeURIComponent(user.name || user.email)}`);
+
 };
 
 export const githubCallback = (req: Request, res: Response) => {
     const user = req.user as any;
 
     if (!user) {
-        return res.redirect('/login?error=auth_failed');
+        return res.redirect('/test-socket.html?error=github-failed');
     }
 
     const token = generateToken(user);
 
-    res.json({
-    success: true,
-    message: 'GitHub login successful',
-    token,
-    user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        provider: user.provider,
-        },
-    });
+    //Redirect to frontend with token
+    res.redirect(`/test-socket.html?token=${encodeURIComponent(token)}&name=${encodeURIComponent(user.name || user.email)}`);
 };
