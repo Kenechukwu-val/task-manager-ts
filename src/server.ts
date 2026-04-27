@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
     res.redirect('/test-socket.html');
 });
 
-app.get('*', (req, res) => {
+app.get('/*splat', (req, res) => {
     res.redirect('/test-socket.html');
 });
 

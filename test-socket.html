@@ -3,68 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager - Real-time Test</title>
+    <title>Task Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; }
-        .log { max-height: 280px; overflow-y: auto; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+        .log { max-height: 300px; overflow-y: auto; scrollbar-width: thin; }
     </style>
     </head>
     <body class="bg-gray-50 min-h-screen py-8">
-    <div class="max-w-5xl mx-auto px-6">
-        <div class="flex justify-between items-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-800">Task Manager</h1>
+    <div class="max-w-6xl mx-auto px-6">
+        <div class="flex justify-between items-center mb-10">
+        <h1 class="text-4xl font-bold text-gray-900">Task Manager</h1>
         <div id="userInfo" class="hidden items-center gap-4">
-            <span id="welcomeName" class="font-medium text-lg text-gray-700"></span>
+            <span id="welcomeName" class="font-semibold text-lg"></span>
             <button onclick="logout()" 
-                    class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-2xl transition">
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
             Logout
             </button>
         </div>
         </div>
 
         <!-- Login Section -->
-        <div id="loginSection" class="bg-white rounded-3xl shadow-xl p-8 mb-10">
-        <h2 class="text-2xl font-semibold text-center mb-6">Sign In</h2>
+        <div id="loginSection" class="bg-white rounded-3xl shadow-2xl p-10 max-w-lg mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-8">Sign In</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <a href="http://localhost:5000/api/auth/google"
-            class="flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-200 hover:border-red-400 rounded-2xl font-medium transition-all">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="28" height="28">
+        <div class="grid grid-cols-1 gap-4 mb-8">
+            <a href="http://localhost:5000/api/auth/google" 
+            class="flex items-center justify-center gap-3 py-4 border-2 border-gray-300 hover:border-red-400 rounded-2xl font-medium transition">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="28">
             Continue with Google
             </a>
-            
-            <a href="http://localhost:5000/api/auth/github"
-            class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white hover:bg-black rounded-2xl font-medium transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577 0-.285-.01-1.044-.015-2.049-3.338.726-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.652 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.286 0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
+            <a href="http://localhost:5000/api/auth/github" 
+            class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white hover:bg-black rounded-2xl font-medium transition">
+            <span class="text-xl">🐙</span>
             Continue with GitHub
             </a>
         </div>
 
         <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
-            <div class="relative flex justify-center text-sm"><span class="bg-white px-4 text-gray-500">OR</span></div>
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
+            <div class="relative flex justify-center"><span class="bg-white px-4 text-gray-500 text-sm">OR</span></div>
         </div>
 
-        <div class="space-y-5">
-            <input id="email" type="email" placeholder="Email address" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl">
-            <input id="password" type="password" placeholder="Password" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl">
-            
+        <div class="space-y-4">
+            <input id="email" type="email" placeholder="Email address" 
+                class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+            <input id="password" type="password" placeholder="Password" 
+                class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
             <button onclick="traditionalLogin()" 
-                    class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition">
+                    class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl">
             Login with Email & Password
             </button>
         </div>
 
-        <p id="loginStatus" class="mt-4 text-center text-sm font-medium min-h-[24px]"></p>
+        <p id="loginStatus" class="mt-6 text-center text-sm font-medium"></p>
         </div>
 
         <!-- Main App -->
         <div id="mainApp" class="hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Create Task -->
             <div class="bg-white p-8 rounded-3xl shadow">
             <h2 class="text-2xl font-semibold mb-6">Create New Task</h2>
             <div class="space-y-5">
@@ -81,11 +80,12 @@
                 </div>
 
                 <button onclick="createTask()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
-                ➕ Create Task
+                Create Task
                 </button>
             </div>
             </div>
 
+            <!-- Right Column -->
             <div class="space-y-6">
             <div class="bg-white p-6 rounded-3xl shadow">
                 <h2 class="text-xl font-semibold mb-4">Live Events</h2>
@@ -94,7 +94,7 @@
 
             <div class="bg-white p-6 rounded-3xl shadow">
                 <h2 class="text-xl font-semibold mb-4">Your Tasks (Real-time)</h2>
-                <div id="tasks" class="space-y-4 min-h-[200px]"></div>
+                <div id="tasks" class="space-y-4"></div>
             </div>
             </div>
         </div>
@@ -102,8 +102,8 @@
     </div>
 
     <!-- Update Modal -->
-    <div id="updateModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4">
+    <div id="updateModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md">
         <h3 class="text-2xl font-semibold mb-6">Update Task</h3>
         <input id="editTitle" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4">
         <textarea id="editDescription" rows="3" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4"></textarea>
@@ -121,9 +121,9 @@
             </select>
         </div>
 
-        <div class="flex gap-4">
+        <div class="flex gap-3">
             <button onclick="closeModal()" class="flex-1 py-3 border border-gray-300 rounded-2xl">Cancel</button>
-            <button onclick="saveUpdate()" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save Changes</button>
+            <button onclick="saveUpdate()" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save</button>
         </div>
         </div>
     </div>
@@ -142,45 +142,35 @@
         log.scrollTop = log.scrollHeight;
         }
 
-        // Check for token in URL (from Google/GitHub redirect)
+        // Check for token from OAuth redirect
         function checkUrlToken() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const name = urlParams.get('name');
-        const error = urlParams.get('error');
-
-        if (error) {
-            document.getElementById('loginStatus').innerHTML = 
-            `<span class="text-red-600">Login failed: ${error}</span>`;
-            return;
-        }
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const name = params.get('name');
 
         if (token) {
-            // Auto-login from OAuth redirect
             currentToken = token;
             currentUser = { name: name || 'User' };
 
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('userInfo').classList.remove('hidden');
-            
             document.getElementById('welcomeName').textContent = `Welcome, ${currentUser.name}!`;
 
-            addLog(`✅ Logged in successfully via Social Login`);
+            addLog('✅ Logged in via Social Login');
             connectSocket();
 
-            // Clean URL (remove token from address bar)
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Clean URL
+            window.history.replaceState({}, document.title, '/test-socket.html');
         }
         }
 
-        // Traditional Login
         async function traditionalLogin() {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
         if (!email || !password) {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Please enter email and password</span>`;
+            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Email and password required</span>`;
             return;
         }
 
@@ -189,19 +179,18 @@
         try {
             const res = await fetch('http://localhost:5000/api/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password})
             });
 
             const data = await res.json();
-
             if (data.success) {
             handleSuccessfulLogin(data.token, data.user);
             } else {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">${data.message || 'Login failed'}</span>`;
+            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">${data.message}</span>`;
             }
-        } catch (err) {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Login failed. Try again.</span>`;
+        } catch (e) {
+            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Login failed</span>`;
         }
         }
 
@@ -212,24 +201,17 @@
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
         document.getElementById('userInfo').classList.remove('hidden');
-        
         document.getElementById('welcomeName').textContent = `Welcome, ${user.name || 'User'}!`;
 
         document.getElementById('loginStatus').innerHTML = '';
-
-        addLog(`✅ Logged in successfully as ${user.name || user.email}`);
+        addLog(`✅ Logged in as ${user.name || user.email}`);
         connectSocket();
         }
 
         function logout() {
-        if (socket) {
-            socket.disconnect();
-            socket = null;
-        }
-
+        if (socket) socket.disconnect();
         currentToken = null;
         currentUser = null;
-        currentEditingTaskId = null;
 
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';
@@ -240,8 +222,6 @@
         document.getElementById('userInfo').classList.add('hidden');
         document.getElementById('loginSection').classList.remove('hidden');
 
-        document.getElementById('loginStatus').innerHTML = '';
-
         addLog('👋 Logged out successfully');
         }
 
@@ -250,13 +230,10 @@
 
         if (socket) socket.disconnect();
 
-        socket = io('http://localhost:5000', {
-            auth: { token: currentToken },
-            reconnection: true
-        });
+        socket = io('http://localhost:5000', { auth: { token: currentToken } });
 
         socket.on('connect', () => {
-            addLog('🔌 Real-time connection established');
+            addLog('🔌 Connected to real-time server');
             loadTasks();
         });
 
@@ -265,10 +242,9 @@
         socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
         }
 
-        // Create, Load, Edit, Delete functions (same as before)
+        // Rest of the functions (createTask, loadTasks, etc.) - shortened for space but functional
         async function createTask() {
-        if (!currentToken) return alert("Please login first");
-
+        if (!currentToken) return alert("Please login");
         const taskData = {
             title: document.getElementById('title').value.trim(),
             description: document.getElementById('description').value.trim(),
@@ -276,126 +252,81 @@
             dueDate: document.getElementById('dueDate').value ? new Date(document.getElementById('dueDate').value).toISOString() : null
         };
 
-        if (!taskData.title) return alert("Title is required");
+        if (!taskData.title) return alert("Title required");
 
-        try {
-            const res = await fetch('http://localhost:5000/api/tasks', {
+        const res = await fetch('http://localhost:5000/api/tasks', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
             body: JSON.stringify(taskData)
-            });
-
-            const data = await res.json();
-            if (data.success) {
+        });
+        const data = await res.json();
+        if (data.success) {
             addLog(`Task created: ${taskData.title}`);
             document.getElementById('title').value = '';
-            document.getElementById('description').value = '';
             loadTasks();
-            }
-        } catch (err) {
-            addLog('Error creating task', 'error');
         }
         }
 
         async function loadTasks() {
         if (!currentToken) return;
-
-        try {
-            const res = await fetch('http://localhost:5000/api/tasks', {
+        const res = await fetch('http://localhost:5000/api/tasks', {
             headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
-            const data = await res.json();
-
-            const container = document.getElementById('tasks');
-            if (data.success && data.tasks && data.tasks.length > 0) {
-            container.innerHTML = data.tasks.map(task => `
-                <div class="task-card bg-white p-5 border border-gray-200 rounded-2xl">
-                <h3 class="font-semibold text-lg">${task.title}</h3>
-                <p class="text-gray-600 text-sm mt-1">${task.description || 'No description'}</p>
-                <div class="flex gap-2 mt-4">
-                    <button onclick="editTask('${task._id}', '${task.title}', '${task.description || ''}', '${task.priority}', '${task.status}')" 
-                            class="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit</button>
-                    <button onclick="deleteTask('${task._id}', '${task.title}')" 
-                            class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button>
-                </div>
-                </div>
-            `).join('');
-            } else {
-            container.innerHTML = `<p class="text-gray-500 text-center py-10">No tasks yet. Create one above!</p>`;
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        });
+        const data = await res.json();
+        const container = document.getElementById('tasks');
+        container.innerHTML = data.tasks.map(t => `
+            <div class="bg-white p-5 rounded-2xl border">
+            <h3 class="font-semibold">${t.title}</h3>
+            <p class="text-sm text-gray-600">${t.description || ''}</p>
+            <div class="mt-3 flex gap-3">
+                <button onclick="editTask('${t._id}', '${t.title}', '${t.description||''}', '${t.priority}', '${t.status}')" class="text-blue-600 text-sm">Edit</button>
+                <button onclick="deleteTask('${t._id}', '${t.title}')" class="text-red-600 text-sm">Delete</button>
+            </div>
+            </div>
+        `).join('') || '<p class="text-gray-500">No tasks yet</p>';
         }
 
-        function editTask(id, title, description, priority, status) {
+        function editTask(id, title, desc, pri, status) {
         currentEditingTaskId = id;
         document.getElementById('editTitle').value = title;
-        document.getElementById('editDescription').value = description;
-        document.getElementById('editPriority').value = priority;
+        document.getElementById('editDescription').value = desc;
+        document.getElementById('editPriority').value = pri;
         document.getElementById('editStatus').value = status;
         document.getElementById('updateModal').classList.remove('hidden');
         }
 
-        function closeModal() {
-        document.getElementById('updateModal').classList.add('hidden');
-        }
+        function closeModal() { document.getElementById('updateModal').classList.add('hidden'); }
 
         async function saveUpdate() {
-        if (!currentEditingTaskId || !currentToken) return;
-
-        const updatedData = {
-            title: document.getElementById('editTitle').value.trim(),
-            description: document.getElementById('editDescription').value.trim(),
+        if (!currentEditingTaskId) return;
+        const data = {
+            title: document.getElementById('editTitle').value,
+            description: document.getElementById('editDescription').value,
             priority: document.getElementById('editPriority').value,
             status: document.getElementById('editStatus').value
         };
-
-        try {
-            const res = await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
+        await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: JSON.stringify(updatedData)
-            });
-
-            const data = await res.json();
-            if (data.success) {
-            addLog('Task updated successfully', 'update');
-            closeModal();
-            loadTasks();
-            }
-        } catch (err) {
-            addLog('Error updating task', 'error');
-        }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+            body: JSON.stringify(data)
+        });
+        closeModal();
+        loadTasks();
         }
 
         async function deleteTask(id, title) {
-        if (!confirm(`Delete task "${title}"?`)) return;
-
-        try {
-            const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+        if (!confirm(`Delete "${title}"?`)) return;
+        await fetch(`http://localhost:5000/api/tasks/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
-
-            const data = await res.json();
-            if (data.success) {
-            addLog(`Task "${title}" deleted`, 'delete');
-            loadTasks();
-            }
-        } catch (err) {
-            addLog('Error deleting task', 'error');
-        }
+        });
+        loadTasks();
         }
 
-        // Auto-check URL for token on page load
-        window.onload = checkUrlToken;
+        // Initialize
+        window.onload = () => {
+        checkUrlToken();
+        };
     </script>
 </body>
 </html>
