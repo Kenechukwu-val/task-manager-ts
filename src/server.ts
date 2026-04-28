@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import http from 'http';
-import path from 'path';
 import passport from './config/passport';
 
 import authRoutes from './routes/authRoutes';
@@ -31,20 +30,6 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
-// Serve test-socket.html
-app.get('/test-socket.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'test-socket.html'));
-});
-
-// Redirect root and unknown routes to test page
-app.get('/', (req, res) => {
-    res.redirect('/test-socket.html');
-});
-
-app.get('/*splat', (req, res) => {
-    res.redirect('/test-socket.html');
-});
-
 // MongoDB Connection
 const connectDB = async () => {
     try {
@@ -63,5 +48,4 @@ connectDB();
 httpServer.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
     console.log(`🔌 Socket.io ready`);
-    console.log(`🌐 Test Page: http://localhost:5000/test-socket.html`);
 });
