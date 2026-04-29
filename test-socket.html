@@ -327,11 +327,17 @@
             showTab('login');
         }
 
+        //Live messages
         function addLog(message, type = 'info') {
             const log = document.getElementById('log');
             const time = new Date().toLocaleTimeString();
             const prefix = type === 'error' ? '❌' : type === 'update' ? '✏️' : '📌';
-            log.innerHTML += `<div class="mb-1">[${time}] ${prefix} ${message}</div>`;
+
+            const entry = document.createElement('div');
+            entry.className = 'mb-1';
+            entry.textContent = `[${time}] ${prefix} ${message}`;
+
+            log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
         }
 
