@@ -163,6 +163,22 @@
         function showTab(tab) {
             document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
             document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const activeClasses = ['border-b-2', 'border-blue-600', 'text-blue-600'];
+            const inactiveClasses = ['border-b-2', 'border-transparent', 'text-gray-500'];
+
+            loginTab.classList.remove(...activeClasses, ...inactiveClasses);
+            registerTab.classList.remove(...activeClasses, ...inactiveClasses);
+
+            if (tab === 'login') {
+                loginTab.classList.add(...activeClasses);
+                registerTab.classList.add(...inactiveClasses);
+            } else {
+                registerTab.classList.add(...activeClasses);
+                loginTab.classList.add(...inactiveClasses);
+            }
             
             // Clear status message when switching tabs
             document.getElementById('authStatus').innerHTML = '';
