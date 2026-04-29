@@ -65,17 +65,4 @@ router.get('/github/callback',
     githubCallback
 );
 
-// Optional: Get current user (protected route)
-router.get('/me', (req, res) => {
-    if (!req.userId) {
-        return res.status(401).json({ success: false, message: 'Not authenticated' });
-    }
-    
-    // You can expand this later to return full user data
-    res.json({ 
-        success: true, 
-        userId: req.userId 
-    });
-});
-
 export default router;
