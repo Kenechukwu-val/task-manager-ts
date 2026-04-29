@@ -239,31 +239,48 @@
         }
 
         function logout() {
-        // 1. Disconnect socket cleanly
-        if (socket) {
-            socket.disconnect();
-            socket = null;
+
+            // 1. Disconnect socket
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+
+            // 2. Clear all state
+            currentToken = null;
+            currentUser = null;
+            currentEditingTaskId = null;
+
+            // 3. Clear inputs safely (use only IDs that exist in this HTML)
+            ['loginEmail', 'loginPassword', 'registerName', 'registerEmail', 'registerPassword', 'title', 'description'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            // 4. Clear dynamic content
+            const logEl = document.getElementById('log');
+            const tasksEl = document.getElementById('tasks');
+            if (logEl) logEl.innerHTML = '';
+            if (tasksEl) tasksEl.innerHTML = '';
+
+            // 5. Toggle views: show auth form, hide main app + user info
+            const authSection = document.getElementById('authSection');
+            const mainApp = document.getElementById('mainApp');
+            const userInfo = document.getElementById('userInfo');
+
+            if (authSection) authSection.classList.remove('hidden');
+            if (mainApp) mainApp.classList.add('hidden');
+            if (userInfo) userInfo.classList.add('hidden');
+
+            // Optional: hide update modal if open
+            const updateModal = document.getElementById('updateModal');
+            if (updateModal) updateModal.classList.add('hidden');
+
+            // 6. Clear status + reset to login tab
+            const statusEl = document.getElementById('authStatus');
+            if (statusEl) statusEl.innerHTML = '';
+            showTab('login');
         }
-
-        // 2. Clear all state
-        currentToken = null;
-        currentUser = null;
-
-        // 3. Clear form fields
-        document.getElementById('email').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('log').innerHTML = '';
-        document.getElementById('tasks').innerHTML = '';
-
-        // 4. Reset UI visibility
-        document.getElementById('mainApp').classList.add('hidden');
-        document.getElementById('userInfo').classList.add('hidden');
-        document.getElementById('loginSection').classList.remove('hidden');
-
-        // 6. Show success message
-        addLog('👋 Logged out successfully');
-
-    }
 
         function addLog(message, type = 'info') {
             const log = document.getElementById('log');
@@ -323,10 +340,12 @@
 
         async function loadTasks() {
             if (!currentToken) return;
+
             try {
                 const res = await fetch('http://localhost:5000/api/tasks', {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
+
                 const data = await res.json();
                 const container = document.getElementById('tasks');
                 container.innerHTML = data.tasks.map(t => `
@@ -339,8 +358,11 @@
                         </div>
                     </div>
                 `).join('') || '<p class="text-gray-500">No tasks yet</p>';
+
+                addLog(JSON.stringify(data));
             } catch (err) {
                 console.error(err);
+                addLog('Error loading tasks', 'error');
             }
         }
 
@@ -384,23 +406,6 @@
                 headers: { 'Authorization': `Bearer ${currentToken}` }
             });
             loadTasks();
-        }
-
-        function logout() {
-            if (socket) socket.disconnect();
-            currentToken = null;
-            currentUser = null;
-
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('log').innerHTML = '';
-            document.getElementById('tasks').innerHTML = '';
-
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('userInfo').classList.add('hidden');
-            document.getElementById('authSection').classList.remove('hidden');
-            showTab('login');
-            addLog('👋 Logged out successfully');
         }
 
         // Initialize
