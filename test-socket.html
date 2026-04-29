@@ -10,121 +10,130 @@
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
         .log { max-height: 300px; overflow-y: auto; scrollbar-width: thin; }
     </style>
-    </head>
-    <body class="bg-gray-50 min-h-screen py-8">
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
     <div class="max-w-6xl mx-auto px-6">
         <div class="flex justify-between items-center mb-10">
-        <h1 class="text-4xl font-bold text-gray-900">Task Manager</h1>
-        <div id="userInfo" class="hidden items-center gap-4">
-            <span id="welcomeName" class="font-semibold text-lg"></span>
-            <button onclick="logout()" 
-                    class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
-            Logout
-            </button>
-        </div>
-        </div>
-
-        <!-- Login Section -->
-        <div id="loginSection" class="bg-white rounded-3xl shadow-2xl p-10 max-w-lg mx-auto">
-        <h2 class="text-3xl font-bold text-center mb-8">Sign In</h2>
-
-        <div class="grid grid-cols-1 gap-4 mb-8">
-            <a href="http://localhost:5000/api/auth/google" 
-            class="flex items-center justify-center gap-3 py-4 border-2 border-gray-300 hover:border-red-400 rounded-2xl font-medium transition">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="28">
-            Continue with Google
-            </a>
-            <a href="http://localhost:5000/api/auth/github" 
-            class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white hover:bg-black rounded-2xl font-medium transition">
-            <span class="text-xl">🐙</span>
-            Continue with GitHub
-            </a>
+            <h1 class="text-4xl font-bold text-gray-900">Task Manager</h1>
+            <div id="userInfo" class="hidden items-center gap-4">
+                <span id="welcomeName" class="font-semibold text-lg"></span>
+                <button onclick="logout()" 
+                        class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
+                    Logout
+                </button>
+            </div>
         </div>
 
-        <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
-            <div class="relative flex justify-center"><span class="bg-white px-4 text-gray-500 text-sm">OR</span></div>
-        </div>
+        <!-- Auth Section -->
+        <div id="authSection" class="bg-white rounded-3xl shadow-2xl p-10 max-w-lg mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-8">Welcome</h2>
 
-        <div class="space-y-4">
-            <input id="email" type="email" placeholder="Email address" 
-                class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
-            <input id="password" type="password" placeholder="Password" 
-                class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
-            <button onclick="traditionalLogin()" 
-                    class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl">
-            Login with Email & Password
-            </button>
-        </div>
+            <!-- Toggle Tabs -->
+            <div class="flex border-b mb-8">
+                <button onclick="showTab('login')" id="loginTab"
+                        class="flex-1 py-3 font-medium border-b-2 border-blue-600 text-blue-600">Login</button>
+                <button onclick="showTab('register')" id="registerTab"
+                        class="flex-1 py-3 font-medium text-gray-500">Sign Up</button>
+            </div>
 
-        <p id="loginStatus" class="mt-6 text-center text-sm font-medium"></p>
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="space-y-5">
+                    <input id="loginEmail" type="email" placeholder="Email address" 
+                        class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+                    <input id="loginPassword" type="password" placeholder="Password" 
+                        class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+                    <button onclick="traditionalLogin()" 
+                            class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl">
+                        Login
+                    </button>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <div class="space-y-5">
+                    <input id="registerName" type="text" placeholder="Full Name" 
+                        class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+                    <input id="registerEmail" type="email" placeholder="Email address" 
+                        class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+                    <input id="registerPassword" type="password" placeholder="Password (min 6 characters)" 
+                        class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
+                    <button onclick="registerUser()" 
+                            class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
+                        Create Account
+                    </button>
+                </div>
+            </div>
+
+            <p id="authStatus" class="mt-6 text-center text-sm font-medium min-h-[24px]"></p>
         </div>
 
         <!-- Main App -->
         <div id="mainApp" class="hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Create Task -->
-            <div class="bg-white p-8 rounded-3xl shadow">
-            <h2 class="text-2xl font-semibold mb-6">Create New Task</h2>
-            <div class="space-y-5">
-                <input id="title" type="text" placeholder="Task Title" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl">
-                <textarea id="description" placeholder="Description (optional)" rows="3" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl"></textarea>
-                
-                <div class="grid grid-cols-2 gap-4">
-                <select id="priority" class="px-5 py-3.5 border border-gray-300 rounded-2xl">
-                    <option value="medium">Medium Priority</option>
-                    <option value="high">High Priority</option>
-                    <option value="low">Low Priority</option>
-                </select>
-                <input id="dueDate" type="datetime-local" class="px-5 py-3.5 border border-gray-300 rounded-2xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Create Task -->
+                <div class="bg-white p-8 rounded-3xl shadow">
+                    <h2 class="text-2xl font-semibold mb-6">Create New Task</h2>
+                    <div class="space-y-5">
+                        <input id="title" type="text" placeholder="Task Title" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl">
+                        <textarea id="description" placeholder="Description (optional)" rows="3" class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl"></textarea>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <select id="priority" class="px-5 py-3.5 border border-gray-300 rounded-2xl">
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                                <option value="low">Low Priority</option>
+                            </select>
+                            <input id="dueDate" type="datetime-local" class="px-5 py-3.5 border border-gray-300 rounded-2xl">
+                        </div>
+
+                        <button onclick="createTask()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
+                            Create Task
+                        </button>
+                    </div>
                 </div>
 
-                <button onclick="createTask()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
-                Create Task
-                </button>
-            </div>
-            </div>
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-3xl shadow">
+                        <h2 class="text-xl font-semibold mb-4">Live Events</h2>
+                        <div id="log" class="log bg-gray-900 text-green-400 p-5 rounded-2xl text-sm font-mono h-72 overflow-y-auto"></div>
+                    </div>
 
-            <!-- Right Column -->
-            <div class="space-y-6">
-            <div class="bg-white p-6 rounded-3xl shadow">
-                <h2 class="text-xl font-semibold mb-4">Live Events</h2>
-                <div id="log" class="log bg-gray-900 text-green-400 p-5 rounded-2xl text-sm font-mono h-72 overflow-y-auto"></div>
+                    <div class="bg-white p-6 rounded-3xl shadow">
+                        <h2 class="text-xl font-semibold mb-4">Your Tasks (Real-time)</h2>
+                        <div id="tasks" class="space-y-4"></div>
+                    </div>
+                </div>
             </div>
-
-            <div class="bg-white p-6 rounded-3xl shadow">
-                <h2 class="text-xl font-semibold mb-4">Your Tasks (Real-time)</h2>
-                <div id="tasks" class="space-y-4"></div>
-            </div>
-            </div>
-        </div>
         </div>
     </div>
 
     <!-- Update Modal -->
     <div id="updateModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
         <div class="bg-white rounded-3xl p-8 w-full max-w-md">
-        <h3 class="text-2xl font-semibold mb-6">Update Task</h3>
-        <input id="editTitle" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4">
-        <textarea id="editDescription" rows="3" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4"></textarea>
-        
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <select id="editPriority" class="px-5 py-3 border border-gray-300 rounded-2xl">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            </select>
-            <select id="editStatus" class="px-5 py-3 border border-gray-300 rounded-2xl">
-            <option value="todo">To Do</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-            </select>
-        </div>
+            <h3 class="text-2xl font-semibold mb-6">Update Task</h3>
+            <input id="editTitle" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4">
+            <textarea id="editDescription" rows="3" class="w-full px-5 py-3 border border-gray-300 rounded-2xl mb-4"></textarea>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <select id="editPriority" class="px-5 py-3 border border-gray-300 rounded-2xl">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <select id="editStatus" class="px-5 py-3 border border-gray-300 rounded-2xl">
+                    <option value="todo">To Do</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
 
-        <div class="flex gap-3">
-            <button onclick="closeModal()" class="flex-1 py-3 border border-gray-300 rounded-2xl">Cancel</button>
-            <button onclick="saveUpdate()" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save</button>
-        </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-3 border border-gray-300 rounded-2xl">Cancel</button>
+                <button onclick="saveUpdate()" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save</button>
+            </div>
         </div>
     </div>
 
@@ -134,198 +143,269 @@
         let currentUser = null;
         let currentEditingTaskId = null;
 
-        function addLog(message, type = 'info') {
-        const log = document.getElementById('log');
-        const time = new Date().toLocaleTimeString();
-        const prefix = type === 'error' ? '❌' : type === 'update' ? '✏️' : '📌';
-        log.innerHTML += `<div class="mb-1">[${time}] ${prefix} ${message}</div>`;
-        log.scrollTop = log.scrollHeight;
+        function showTab(tab) {
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+            
+            // Clear status message when switching tabs
+            document.getElementById('authStatus').innerHTML = '';
         }
 
-        // Check for token from OAuth redirect
-        function checkUrlToken() {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        const name = params.get('name');
+        async function registerUser() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
 
-        if (token) {
-            currentToken = token;
-            currentUser = { name: name || 'User' };
+            const statusEl = document.getElementById('authStatus');
 
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userInfo').classList.remove('hidden');
-            document.getElementById('welcomeName').textContent = `Welcome, ${currentUser.name}!`;
+            if (!name || !email || !password) {
+                statusEl.innerHTML = `<span class="text-red-600">All fields are required</span>`;
+                return;
+            }
+            if (password.length < 6) {
+                statusEl.innerHTML = `<span class="text-red-600">Password must be at least 6 characters</span>`;
+                return;
+            }
 
-            addLog('✅ Logged in via Social Login');
-            connectSocket();
+            statusEl.innerHTML = `<span class="text-blue-600">Creating account...</span>`;
 
-            // Clean URL
-            window.history.replaceState({}, document.title, '/test-socket.html');
-        }
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    statusEl.innerHTML = `<span class="text-green-600">Account created! Logging you in...</span>`;
+                    // Auto login after registration
+                    setTimeout(() => {
+                        document.getElementById('loginEmail').value = email;
+                        document.getElementById('loginPassword').value = password;
+                        traditionalLogin();
+                    }, 1500);
+                } else {
+                    statusEl.innerHTML = `<span class="text-red-600">${data.message || 'Registration failed'}</span>`;
+                }
+            } catch (err) {
+                statusEl.innerHTML = `<span class="text-red-600">Registration error</span>`;
+            }
         }
 
         async function traditionalLogin() {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const statusEl = document.getElementById('authStatus');
 
-        if (!email || !password) {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Email and password required</span>`;
-            return;
-        }
-
-        document.getElementById('loginStatus').innerHTML = "Logging in...";
-
-        try {
-            const res = await fetch('http://localhost:5000/api/auth/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email, password})
-            });
-
-            const data = await res.json();
-            if (data.success) {
-            handleSuccessfulLogin(data.token, data.user);
-            } else {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">${data.message}</span>`;
+            if (!email || !password) {
+                statusEl.innerHTML = `<span class="text-red-600">Email and password required</span>`;
+                return;
             }
-        } catch (e) {
-            document.getElementById('loginStatus').innerHTML = `<span class="text-red-600">Login failed</span>`;
-        }
+
+            statusEl.innerHTML = "Logging in...";
+
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    handleSuccessfulLogin(data.token, data.user);
+                } else {
+                    statusEl.innerHTML = `<span class="text-red-600">${data.message || 'Invalid credentials'}</span>`;
+                }
+            } catch (e) {
+                statusEl.innerHTML = `<span class="text-red-600">Login failed</span>`;
+            }
         }
 
         function handleSuccessfulLogin(token, user) {
-        currentToken = token;
-        currentUser = user;
+            currentToken = token;
+            currentUser = user;
 
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('userInfo').classList.remove('hidden');
-        document.getElementById('welcomeName').textContent = `Welcome, ${user.name || 'User'}!`;
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('welcomeName').textContent = `Welcome, ${user.name || 'User'}!`;
 
-        document.getElementById('loginStatus').innerHTML = '';
-        addLog(`✅ Logged in as ${user.name || user.email}`);
-        connectSocket();
+            addLog(`✅ Logged in as ${user.name || user.email}`);
+            connectSocket();
         }
 
         function logout() {
-        if (socket) socket.disconnect();
+        // 1. Disconnect socket cleanly
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+
+        // 2. Clear all state
         currentToken = null;
         currentUser = null;
 
+        // 3. Clear form fields
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';
         document.getElementById('log').innerHTML = '';
         document.getElementById('tasks').innerHTML = '';
 
+        // 4. Reset UI visibility
         document.getElementById('mainApp').classList.add('hidden');
         document.getElementById('userInfo').classList.add('hidden');
         document.getElementById('loginSection').classList.remove('hidden');
 
+        // 6. Show success message
         addLog('👋 Logged out successfully');
+
+    }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'update' ? '✏️' : '📌';
+            log.innerHTML += `<div class="mb-1">[${time}] ${prefix} ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
         }
 
         function connectSocket() {
-        if (!currentToken) return;
+            if (!currentToken) return;
+            if (socket) socket.disconnect();
 
-        if (socket) socket.disconnect();
+            socket = io('http://localhost:5000', { auth: { token: currentToken } });
 
-        socket = io('http://localhost:5000', { auth: { token: currentToken } });
+            socket.on('connect', () => {
+                addLog('🔌 Connected to real-time server');
+                loadTasks();
+            });
 
-        socket.on('connect', () => {
-            addLog('🔌 Connected to real-time server');
-            loadTasks();
-        });
-
-        socket.on('taskCreated', () => { addLog('New task created'); loadTasks(); });
-        socket.on('taskUpdated', () => { addLog('Task updated', 'update'); loadTasks(); });
-        socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
+            socket.on('taskCreated', () => { addLog('New task created'); loadTasks(); });
+            socket.on('taskUpdated', () => { addLog('Task updated', 'update'); loadTasks(); });
+            socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
         }
 
-        // Rest of the functions (createTask, loadTasks, etc.) - shortened for space but functional
+        // Create, Load, Edit, Delete functions (kept from your version)
         async function createTask() {
-        if (!currentToken) return alert("Please login");
-        const taskData = {
-            title: document.getElementById('title').value.trim(),
-            description: document.getElementById('description').value.trim(),
-            priority: document.getElementById('priority').value,
-            dueDate: document.getElementById('dueDate').value ? new Date(document.getElementById('dueDate').value).toISOString() : null
-        };
+            if (!currentToken) return alert("Please login first");
+            const taskData = {
+                title: document.getElementById('title').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                priority: document.getElementById('priority').value,
+                dueDate: document.getElementById('dueDate').value ? new Date(document.getElementById('dueDate').value).toISOString() : null
+            };
 
-        if (!taskData.title) return alert("Title required");
+            if (!taskData.title) return alert("Title required");
 
-        const res = await fetch('http://localhost:5000/api/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-            body: JSON.stringify(taskData)
-        });
-        const data = await res.json();
-        if (data.success) {
-            addLog(`Task created: ${taskData.title}`);
-            document.getElementById('title').value = '';
-            loadTasks();
-        }
+            try {
+                const res = await fetch('http://localhost:5000/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`Task created: ${taskData.title}`);
+                    document.getElementById('title').value = '';
+                    loadTasks();
+                }
+            } catch (err) {
+                addLog('Error creating task', 'error');
+            }
         }
 
         async function loadTasks() {
-        if (!currentToken) return;
-        const res = await fetch('http://localhost:5000/api/tasks', {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
-        });
-        const data = await res.json();
-        const container = document.getElementById('tasks');
-        container.innerHTML = data.tasks.map(t => `
-            <div class="bg-white p-5 rounded-2xl border">
-            <h3 class="font-semibold">${t.title}</h3>
-            <p class="text-sm text-gray-600">${t.description || ''}</p>
-            <div class="mt-3 flex gap-3">
-                <button onclick="editTask('${t._id}', '${t.title}', '${t.description||''}', '${t.priority}', '${t.status}')" class="text-blue-600 text-sm">Edit</button>
-                <button onclick="deleteTask('${t._id}', '${t.title}')" class="text-red-600 text-sm">Delete</button>
-            </div>
-            </div>
-        `).join('') || '<p class="text-gray-500">No tasks yet</p>';
+            if (!currentToken) return;
+            try {
+                const res = await fetch('http://localhost:5000/api/tasks', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('tasks');
+                container.innerHTML = data.tasks.map(t => `
+                    <div class="bg-white p-5 rounded-2xl border">
+                        <h3 class="font-semibold">${t.title}</h3>
+                        <p class="text-sm text-gray-600">${t.description || ''}</p>
+                        <div class="mt-3 flex gap-3">
+                            <button onclick="editTask('${t._id}', '${t.title}', '${t.description||''}', '${t.priority}', '${t.status}')" class="text-blue-600 text-sm">Edit</button>
+                            <button onclick="deleteTask('${t._id}', '${t.title}')" class="text-red-600 text-sm">Delete</button>
+                        </div>
+                    </div>
+                `).join('') || '<p class="text-gray-500">No tasks yet</p>';
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         function editTask(id, title, desc, pri, status) {
-        currentEditingTaskId = id;
-        document.getElementById('editTitle').value = title;
-        document.getElementById('editDescription').value = desc;
-        document.getElementById('editPriority').value = pri;
-        document.getElementById('editStatus').value = status;
-        document.getElementById('updateModal').classList.remove('hidden');
+            currentEditingTaskId = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = desc;
+            document.getElementById('editPriority').value = pri;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('updateModal').classList.remove('hidden');
         }
 
-        function closeModal() { document.getElementById('updateModal').classList.add('hidden'); }
+        function closeModal() {
+            document.getElementById('updateModal').classList.add('hidden');
+        }
 
         async function saveUpdate() {
-        if (!currentEditingTaskId) return;
-        const data = {
-            title: document.getElementById('editTitle').value,
-            description: document.getElementById('editDescription').value,
-            priority: document.getElementById('editPriority').value,
-            status: document.getElementById('editStatus').value
-        };
-        await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-            body: JSON.stringify(data)
-        });
-        closeModal();
-        loadTasks();
+            if (!currentEditingTaskId || !currentToken) return;
+            const updatedData = {
+                title: document.getElementById('editTitle').value,
+                description: document.getElementById('editDescription').value,
+                priority: document.getElementById('editPriority').value,
+                status: document.getElementById('editStatus').value
+            };
+            await fetch(`http://localhost:5000/api/tasks/${currentEditingTaskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify(updatedData)
+            });
+            closeModal();
+            loadTasks();
         }
 
         async function deleteTask(id, title) {
-        if (!confirm(`Delete "${title}"?`)) return;
-        await fetch(`http://localhost:5000/api/tasks/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${currentToken}` }
-        });
-        loadTasks();
+            if (!confirm(`Delete "${title}"?`)) return;
+            await fetch(`http://localhost:5000/api/tasks/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            loadTasks();
+        }
+
+        function logout() {
+            if (socket) socket.disconnect();
+            currentToken = null;
+            currentUser = null;
+
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('tasks').innerHTML = '';
+
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('authSection').classList.remove('hidden');
+            showTab('login');
+            addLog('👋 Logged out successfully');
         }
 
         // Initialize
         window.onload = () => {
-        checkUrlToken();
+            showTab('login');
         };
     </script>
 </body>
