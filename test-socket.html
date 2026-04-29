@@ -25,7 +25,7 @@
         </div>
 
         <!-- Auth Section -->
-        <div id="authSection" class="bg-white rounded-3xl shadow-2xl p-10 max-w-lg mx-auto">
+        <div id="authSection" class="hidden bg-white rounded-3xl shadow-2xl p-10 max-w-lg mx-auto">
             <h2 class="text-3xl font-bold text-center mb-8">Welcome</h2>
 
             <!-- Toggle Tabs -->
@@ -168,6 +168,7 @@
             document.getElementById('authStatus').innerHTML = '';
         }
 
+        // Registration
         async function registerUser() {
             const name = document.getElementById('registerName').value.trim();
             const email = document.getElementById('registerEmail').value.trim();
@@ -211,6 +212,7 @@
             }
         }
 
+        // Traditional Login
         async function traditionalLogin() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -242,9 +244,13 @@
             }
         }
 
+        //Successful login handler (used for both traditional and social logins)
         function handleSuccessfulLogin(token, user) {
             currentToken = token;
             currentUser = user;
+
+            localStorage.setItem('taskManagerToken', token);
+            localStorage.setItem('taskManagerUser', JSON.stringify(user));
 
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
@@ -255,6 +261,7 @@
             connectSocket();
         }
 
+        //Logout
         function logout() {
 
             // 1. Disconnect socket
@@ -267,6 +274,10 @@
             currentToken = null;
             currentUser = null;
             currentEditingTaskId = null;
+
+            // Clear localStorage
+            localStorage.removeItem('taskManagerToken');
+            localStorage.removeItem('taskManagerUser');
 
             // 3. Clear inputs safely (use only IDs that exist in this HTML)
             ['loginEmail', 'loginPassword', 'registerName', 'registerEmail', 'registerPassword', 'title', 'description'].forEach(id => {
@@ -296,6 +307,7 @@
             // 6. Clear status + reset to login tab
             const statusEl = document.getElementById('authStatus');
             if (statusEl) statusEl.innerHTML = '';
+
             showTab('login');
         }
 
@@ -307,6 +319,7 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        //Connect Socket.io
         function connectSocket() {
             if (!currentToken) return;
             if (socket) socket.disconnect();
@@ -323,7 +336,7 @@
             socket.on('taskDeleted', () => { addLog('Task deleted', 'delete'); loadTasks(); });
         }
 
-        // Create, Load, Edit, Delete functions (kept from your version)
+        // Create Task
         async function createTask() {
             if (!currentToken) return alert("Please login first");
             const taskData = {
@@ -366,6 +379,7 @@
             }
         }
 
+        //Load Tasks
         async function loadTasks() {
             if (!currentToken) return;
 
@@ -468,6 +482,7 @@
             }
         }
 
+        //Edit Task
         function editTask(id, title, desc, pri, status) {
             currentEditingTaskId = id;
             document.getElementById('editTitle').value = title;
@@ -481,6 +496,7 @@
             document.getElementById('updateModal').classList.add('hidden');
         }
 
+        //Update Task
         async function saveUpdate() {
             if (!currentEditingTaskId || !currentToken) return;
 
@@ -516,6 +532,7 @@
             }
         }
 
+        //Delete Task
         async function deleteTask(id, title) {
             if (!confirm(`Delete "${title}"?`)) return;
 
@@ -539,7 +556,7 @@
             }
         }
 
-        // Initialize
+        // Initialize or Startup code
         window.addEventListener('load', () => {
             document.getElementById('loginTab').addEventListener('click', () => showTab('login'));
             document.getElementById('registerTab').addEventListener('click', () => showTab('register'));
@@ -563,6 +580,20 @@
                 return;
             }
 
+            const savedToken = localStorage.getItem('taskManagerToken');
+            const savedUser = localStorage.getItem('taskManagerUser');
+
+            if (savedToken && savedUser) {
+                try {
+                    handleSuccessfulLogin(savedToken, JSON.parse(savedUser));
+                    return;
+                } catch (error) {
+                    localStorage.removeItem('taskManagerToken');
+                    localStorage.removeItem('taskManagerUser');
+                }
+            }
+
+            document.getElementById('authSection').classList.remove('hidden');
             showTab('login');
         });
 
