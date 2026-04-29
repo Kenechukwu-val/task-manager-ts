@@ -17,7 +17,7 @@
             <h1 class="text-4xl font-bold text-gray-900">Task Manager</h1>
             <div id="userInfo" class="hidden items-center gap-4">
                 <span id="welcomeName" class="font-semibold text-lg"></span>
-                <button onclick="logout()" 
+                <button id="logoutButton"
                         class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
                     Logout
                 </button>
@@ -30,9 +30,9 @@
 
             <!-- Toggle Tabs -->
             <div class="flex border-b mb-8">
-                <button onclick="showTab('login')" id="loginTab"
+                <button id="loginTab"
                         class="flex-1 py-3 font-medium border-b-2 border-blue-600 text-blue-600">Login</button>
-                <button onclick="showTab('register')" id="registerTab"
+                <button id="registerTab"
                         class="flex-1 py-3 font-medium text-gray-500">Sign Up</button>
             </div>
 
@@ -43,7 +43,7 @@
                         class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
                     <input id="loginPassword" type="password" placeholder="Password" 
                         class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
-                    <button onclick="traditionalLogin()" 
+                    <button id="loginButton"
                             class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl">
                         Login
                     </button>
@@ -59,11 +59,28 @@
                         class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
                     <input id="registerPassword" type="password" placeholder="Password (min 6 characters)" 
                         class="w-full px-5 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500">
-                    <button onclick="registerUser()" 
+                    <button id="registerButton"
                             class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
                         Create Account
                     </button>
                 </div>
+            </div>
+
+            <div class="my-8 flex items-center gap-4">
+                <div class="h-px flex-1 bg-gray-200"></div>
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-400">or</span>
+                <div class="h-px flex-1 bg-gray-200"></div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3">
+                <a href="/api/auth/google"
+                    class="w-full py-3.5 border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-2xl text-center">
+                    Continue with Google
+                </a>
+                <a href="/api/auth/github"
+                    class="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-semibold rounded-2xl text-center">
+                    Continue with GitHub
+                </a>
             </div>
 
             <p id="authStatus" class="mt-6 text-center text-sm font-medium min-h-[24px]"></p>
@@ -88,7 +105,7 @@
                             <input id="dueDate" type="datetime-local" class="px-5 py-3.5 border border-gray-300 rounded-2xl">
                         </div>
 
-                        <button onclick="createTask()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
+                        <button id="createTaskButton" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl">
                             Create Task
                         </button>
                     </div>
@@ -131,8 +148,8 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeModal()" class="flex-1 py-3 border border-gray-300 rounded-2xl">Cancel</button>
-                <button onclick="saveUpdate()" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save</button>
+                <button id="closeModalButton" class="flex-1 py-3 border border-gray-300 rounded-2xl">Cancel</button>
+                <button id="saveUpdateButton" class="flex-1 py-3 bg-blue-600 text-white rounded-2xl">Save</button>
             </div>
         </div>
     </div>
@@ -523,9 +540,32 @@
         }
 
         // Initialize
-        window.onload = () => {
+        window.addEventListener('load', () => {
+            document.getElementById('loginTab').addEventListener('click', () => showTab('login'));
+            document.getElementById('registerTab').addEventListener('click', () => showTab('register'));
+            document.getElementById('loginButton').addEventListener('click', traditionalLogin);
+            document.getElementById('registerButton').addEventListener('click', registerUser);
+            document.getElementById('logoutButton').addEventListener('click', logout);
+            document.getElementById('createTaskButton').addEventListener('click', createTask);
+            document.getElementById('closeModalButton').addEventListener('click', closeModal);
+            document.getElementById('saveUpdateButton').addEventListener('click', saveUpdate);
+
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const name = params.get('name');
+
+            if (token) {
+                handleSuccessfulLogin(token, {
+                    name: name || 'User'
+                });
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+
             showTab('login');
-        };
+        });
+
     </script>
 </body>
 </html>

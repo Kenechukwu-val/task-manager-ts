@@ -49,15 +49,4 @@ router.get('/github/callback', passport_1.default.authenticate('github', {
     session: false,
     failureRedirect: '/login?error=github_failed'
 }), socialAuthController_1.githubCallback);
-// Optional: Get current user (protected route)
-router.get('/me', (req, res) => {
-    if (!req.userId) {
-        return res.status(401).json({ success: false, message: 'Not authenticated' });
-    }
-    // You can expand this later to return full user data
-    res.json({
-        success: true,
-        userId: req.userId
-    });
-});
 exports.default = router;

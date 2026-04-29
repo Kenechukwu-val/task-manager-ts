@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import http from 'http';
+import path from 'path';
 import passport from './config/passport';
 
 import authRoutes from './routes/authRoutes';
@@ -21,10 +22,24 @@ const io = setupSocket(httpServer);
 app.set('io', io);
 
 // Middleware
-app.use(helmet());
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.socket.io"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                connectSrc: ["'self'", "ws://localhost:5000", "http://localhost:5000"],
+            },
+        },
+    })
+);
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 app.use(passport.initialize());
+
+
+app.use(express.static(path.join(__dirname, '..')));
 
 // Routes
 app.use('/api/auth', authRoutes);

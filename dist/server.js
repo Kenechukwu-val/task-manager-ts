@@ -9,6 +9,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const http_1 = __importDefault(require("http"));
+const path_1 = __importDefault(require("path"));
 const passport_1 = __importDefault(require("./config/passport"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
@@ -20,10 +21,20 @@ const httpServer = http_1.default.createServer(app);
 const io = (0, socketHandler_1.setupSocket)(httpServer);
 app.set('io', io);
 // Middleware
-app.use((0, helmet_1.default)());
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.socket.io"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            connectSrc: ["'self'", "ws://localhost:5000", "http://localhost:5000"],
+        },
+    },
+}));
 app.use((0, cors_1.default)({ origin: '*', credentials: true }));
 app.use(express_1.default.json());
 app.use(passport_1.default.initialize());
+app.use(express_1.default.static(path_1.default.join(__dirname, '..')));
 // Routes
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/tasks', taskRoutes_1.default);
