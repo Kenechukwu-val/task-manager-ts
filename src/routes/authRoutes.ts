@@ -1,15 +1,10 @@
 import express from 'express';
-import passport from 'passport';
 import { register, login } from '../controllers/authController';
-import { googleCallback, githubCallback } from '../controllers/socialAuthController';
+import { supabaseCallback } from '../controllers/socialAuthController';
 import { validate } from '../middlewares/validate';
 import { z } from 'zod';
 
 const router = express.Router();
-
-// ======================
-// Traditional Email/Password Routes
-// ======================
 
 const registerSchema = z.object({
     name: z.string().min(1, 'Name is required').trim(),
@@ -30,39 +25,6 @@ const loginSchema = z.object({
 
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
-
-// ======================
-// Social Login Routes (OAuth)
-// ======================
-
-// Google OAuth Routes
-router.get('/google', 
-    passport.authenticate('google', { 
-        scope: ['profile', 'email'] 
-    })
-);
-
-router.get('/google/callback', 
-    passport.authenticate('google', { 
-        session: false, 
-        failureRedirect: '/login?error=google_failed' 
-    }), 
-    googleCallback
-);
-
-// GitHub OAuth Routes
-router.get('/github', 
-    passport.authenticate('github', { 
-        scope: ['user:email'] 
-    })
-);
-
-router.get('/github/callback', 
-    passport.authenticate('github', { 
-        session: false, 
-        failureRedirect: '/login?error=github_failed' 
-    }), 
-    githubCallback
-);
+router.get('/callback', supabaseCallback);
 
 export default router;
