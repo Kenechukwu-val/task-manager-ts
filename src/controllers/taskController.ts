@@ -1,99 +1,91 @@
-import { Request, Response } from 'express';
-import Task from '../models/Task';
-import { emitTaskEvent } from '../sockets/socketHandler';
+import { Request, Response } from "express";
+import { supabase } from "../config/supabase";
+import { emitTaskEvent } from "../sockets/socketHandler";
 
-//Get all tasks for logged-in user
 export const getTasks = async (req: Request, res: Response) => {
-    try{
+  try {
+    const { data: tasks, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", req.userId)
+      .order("created_at", { ascending: false });
 
-    if (!req.userId) {
-            return res.status(401).json({ success: false, message: 'User not authenticated' });
-    }
-        
-        const tasks = await Task.find({ user: req.userId }).sort({ createdAt: -1 });
-        res.json({ success: true, tasks });
+    if (error) throw error;
 
-    }catch ( error: any ) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+    res.status(200).json({ success: true, tasks });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-//Create a new task
 export const createTask = async (req: Request, res: Response) => {
-    try{
+  try {
+    const { data: task, error } = await supabase
+      .from("tasks")
+      .insert({ ...req.body, user_id: req.userId })
+      .select()
+      .single();
 
-    if (!req.userId) {
-            return res.status(401).json({ success: false, message: 'User not authenticated' });
-    }
+    if (error) throw error;
 
-        const task = new Task({
-            ...req.body,
-            user: req.userId
-        });
-        await task.save();
+    // Emit the new task to all connected clients
+    const io = req.app.get("io");
+    emitTaskEvent(io, "taskCreated", task, req.userId);
 
-        const io = req.app.get('io');
-        emitTaskEvent(io, 'taskCreated', task, req.userId);
-
-        res.status(201).json({ success: true, task });
-    } catch ( error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+    res.status(201).json({ success: true, task });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-//Update a task
-export const updateTask = async ( req: Request, res: Response ) => {
-    try{
+export const updateTask = async (req: Request, res: Response) => {
+  try {
+    const { data: task, error } = await supabase
+      .from("tasks")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .eq("user_id", req.userId)
+      .select()
+      .single();
 
-    if (!req.userId) {
-            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    if (error || !task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
     }
-        const task = await Task.findOneAndUpdate({
-                _id: req.params.id,
-                user: req.userId
-        },
-        req.body,
-        { returnDocument: 'after', runValidators: true }
-    );
 
-        if ( !task ) {
-            return res.status(404).json({ success: false, message: 'Task not found' });
-        }
+    const io = req.app.get("io");
+    emitTaskEvent(io, "taskUpdated", task, req.userId);
 
-        const io = req.app.get('io');
-        emitTaskEvent(io, 'taskUpdated', task, req.userId);
-
-        res.json({ success: true, task });
-
-    } catch (error: any) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+    res.status(200).json({ success: true, task });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-//Delete a task
-export const deleteTask = async ( req: Request, res: Response ) => {
-    try{
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const { data: task, error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", req.params.id)
+      .eq("user_id", req.userId)
+      .select()
+      .single();
 
-    if (!req.userId) {
-            return res.status(401).json({ success: false, message: 'User not authenticated' });
+    if (error || !task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
     }
-    
-        const task = await Task.findOneAndDelete({
-            _id: req.params.id,
-            user: req.userId
-        });
-    
-        if ( !task ) {
-            return res.status(404).json({ success: false, message: 'Task not found' });
-        }
 
-        const io = req.app.get('io');
-        emitTaskEvent(io, 'taskDeleted', { taskId: req.params.id }, req.userId);
+    const io = req.app.get("io");
+    emitTaskEvent(io, "taskDeleted", task, req.userId);
 
-        res.json({ success: true, message: 'Task deleted successfully' });
-
-    } catch (error: any) {
-            res.status(500).json({ success: false, message: error.message });
-    }
-}
-    
+    res.status(200).json({ success: true, task });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
