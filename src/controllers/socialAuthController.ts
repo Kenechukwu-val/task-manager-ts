@@ -1,41 +1,35 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import { supabase, supabaseAdmin } from '../config/supabase';
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+export const supabaseCallback = async (req: Request, res: Response) => {
+    const { code } = req.query;
 
-// Generate JWT after successful OAuth
-const generateToken = (user: any) => {
-    return jwt.sign(
-        { userId: user._id },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-    );
-};
-
-export const googleCallback = (req: Request, res: Response) => {
-    const user = req.user as any;
-
-    if (!user) {
-        return res.redirect('/test-socket.html?error=google-failed');
+    if (!code || typeof code !== 'string') {
+        return res.redirect('/test-socket.html?error=no-code');
     }
 
-    const token = generateToken(user);
+    // Exchange the auth code for a session
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    //Redirect to frontend with token
-    res.redirect(`/test-socket.html?token=${encodeURIComponent(token)}&name=${encodeURIComponent(user.name || user.email)}`);
-
-};
-
-export const githubCallback = (req: Request, res: Response) => {
-    const user = req.user as any;
-
-    if (!user) {
-        return res.redirect('/test-socket.html?error=github-failed');
+    if (error || !data.session) {
+        return res.redirect('/test-socket.html?error=auth-failed');
     }
 
-    const token = generateToken(user);
+    const { user, session } = data;
 
-    //Redirect to frontend with token
-    res.redirect(`/test-socket.html?token=${encodeURIComponent(token)}&name=${encodeURIComponent(user.name || user.email)}`);
+    // Upsert profile ( creates one if first-time social login )
+    const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            name: user.user_metadata?.fullname || user.user_metadata?.name || user.email,
+            email: user.email,
+            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        }, { onConflict: 'id' });
+
+    if (profileError) {
+        return res.redirect('/test-socket.html?error=profile-failed');
+    }
+
+    res.redirect(`/test-socket.html?token=${encodeURIComponent(session.access_token)}&name=${encodeURIComponent(user.email || 'User')}`);
 };
