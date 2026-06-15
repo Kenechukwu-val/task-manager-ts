@@ -141,9 +141,9 @@
                     <option value="high">High</option>
                 </select>
                 <select id="editStatus" class="px-5 py-3 border border-gray-300 rounded-2xl">
-                    <option value="todo">To Do</option>
+                    <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
-                    <option value="done">Completed</option>
+                    <option value="completed">Completed</option>
                 </select>
             </div>
 
@@ -369,7 +369,7 @@
 
             const dueDateValue = document.getElementById('dueDate').value;
             if (dueDateValue) {
-                taskData.dueDate = new Date(dueDateValue).toISOString();
+                taskData.due_date = new Date(dueDateValue).toISOString();
             }
 
             if (!taskData.title) return alert("Title required");
@@ -454,15 +454,15 @@
                     const status = document.createElement('span');
                     status.className =
                         'text-xs px-2 py-1 rounded-full border ' +
-                        (t.status === 'done'
+                        (t.status === 'completed'
                             ? 'bg-green-50 border-green-200 text-green-700'
                             : t.status === 'in-progress'
                                 ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
                                 : 'bg-blue-50 border-blue-200 text-blue-700');
 
                     status.textContent =
-                        t.status === 'todo'
-                            ? 'To Do'
+                        t.status === 'pending'
+                            ? 'Pending'
                             : t.status === 'in-progress'
                                 ? 'In Progress'
                                 : 'Completed';
@@ -474,14 +474,14 @@
                             editButton.className = 'text-blue-600 text-sm';
                             editButton.textContent = 'Edit';
                             editButton.addEventListener('click', () => {
-                                editTask(t._id, t.title, t.description || '', t.priority, t.status);
+                                editTask(t.id, t.title, t.description || '', t.priority, t.status);
                     });
 
                     const deleteButton = document.createElement('button');
                             deleteButton.className = 'text-red-600 text-sm';
                             deleteButton.textContent = 'Delete';
                             deleteButton.addEventListener('click', () => {
-                                deleteTask(t._id, t.title);
+                                deleteTask(t.id, t.title);
                     });
 
                             actions.appendChild(editButton);
