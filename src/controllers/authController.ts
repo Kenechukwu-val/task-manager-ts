@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
-import jwt from 'jsonwebtoken';
 
 
 // Register a new user

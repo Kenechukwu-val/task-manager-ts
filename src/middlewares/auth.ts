@@ -1,37 +1,41 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-
-interface JwtPayload{
-    userId: string;
-}
+import { supabase } from '../config/supabase';
 
 declare global {
     namespace Express {
         interface Request {
-        userId?: string;
+            userId?: string;
         }
     }
 }
 
-export const authMiddleware = ( req: Request, res: Response, next: NextFunction ) => {
-    try{
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
 
-        if ( !token ) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Access Denied. No token provided.'
+                message: 'Access denied. No token provided.',
             });
         }
 
-        const decoded =  jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+        const { data: { user }, error } = await supabase.auth.getUser(token);
 
-        req.userId = decoded.userId;
+        if (error || !user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token.',
+            });
+        }
+
+        req.userId = user.id;
         next();
     } catch (error) {
-        res.status(401).json({
+        console.error('Authentication error:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Invalid or expired token.'
+            message: 'An error occurred during authentication.',  
         });
-    }
-}
+    }  
+};
