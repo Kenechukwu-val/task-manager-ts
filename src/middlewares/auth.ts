@@ -1,14 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 
-declare global {
-    namespace Express {
-        interface Request {
-            userId?: string;
-        }
-    }
-}
-
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -28,8 +20,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
                 message: 'Invalid or expired token.',
             });
         }
-
-        req.userId = user.id;
+        
         next();
     } catch (error) {
         console.error('Authentication error:', error);
