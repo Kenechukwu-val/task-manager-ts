@@ -1,6 +1,7 @@
 import express from 'express';
 import { register, login } from '../controllers/authController';
-import { supabaseCallback } from '../controllers/socialAuthController';
+import { supabaseCallback, socialLogin } from '../controllers/socialAuthController';
+import { supabase } from '../config/supabase';
 import { validate } from '../middlewares/validate';
 import { z } from 'zod';
 
@@ -26,5 +27,24 @@ const loginSchema = z.object({
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.get('/callback', supabaseCallback);
+router.post('/social-login', socialLogin);
+
+router.get('/google', async (req, res) => {
+    const { data } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: 'http://localhost:5000/api/auth/callback' }
+    });
+    if (data.url) res.redirect(data.url);
+    else res.status(500).json({ success: false, message: 'OAuth initiation failed' });
+});
+
+router.get('/github', async (req, res) => {
+    const { data } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: { redirectTo: 'http://localhost:5000/api/auth/callback' }
+    });
+    if (data.url) res.redirect(data.url);
+    else res.status(500).json({ success: false, message: 'OAuth initiation failed' });
+});
 
 export default router;

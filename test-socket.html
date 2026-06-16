@@ -74,14 +74,14 @@
 
             <div class="grid grid-cols-1 gap-3">
                 <a href="/api/auth/google"
-                    class="w-full py-3.5 border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-2xl text-center">
+                    class="block w-full py-3.5 border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold rounded-2xl text-center">
                     Continue with Google
                 </a>
                 <a href="/api/auth/github"
-                    class="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-semibold rounded-2xl text-center">
+                    class="block w-full py-3.5 bg-gray-900 hover:bg-black text-white font-semibold rounded-2xl text-center">
                     Continue with GitHub
                 </a>
-            </div>
+             </div>
 
             <p id="authStatus" class="mt-6 text-center text-sm font-medium min-h-[24px]"></p>
         </div>
@@ -159,6 +159,31 @@
         let currentToken = null;
         let currentUser = null;
         let currentEditingTaskId = null;
+
+        // Handle token from URL immediately (before load event)
+        (function handleUrlToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            if (token) {
+                const name = params.get('name') || 'User';
+                localStorage.setItem('taskManagerToken', token);
+                localStorage.setItem('taskManagerUser', JSON.stringify({ name }));
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+
+            // Handle Supabase OAuth redirect (token in URL hash)
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const hashParams = new URLSearchParams(hash);
+                const accessToken = hashParams.get('access_token');
+                if (accessToken) {
+                    // Save temporarily — will be exchanged via social-login endpoint
+                    localStorage.setItem('taskManagerToken', accessToken);
+                    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                }
+            }
+        })();
 
         function showTab(tab) {
             document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
@@ -578,8 +603,7 @@
             }
         }
 
-        // Initialize or Startup code
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
             document.getElementById('loginTab').addEventListener('click', () => showTab('login'));
             document.getElementById('registerTab').addEventListener('click', () => showTab('register'));
             document.getElementById('loginButton').addEventListener('click', traditionalLogin);
@@ -588,22 +612,24 @@
             document.getElementById('createTaskButton').addEventListener('click', createTask);
             document.getElementById('closeModalButton').addEventListener('click', closeModal);
             document.getElementById('saveUpdateButton').addEventListener('click', saveUpdate);
-
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
-            const name = params.get('name');
-
-            if (token) {
-                handleSuccessfulLogin(token, {
-                    name: name || 'User'
-                });
-
-                window.history.replaceState({}, document.title, window.location.pathname);
-                return;
-            }
-
+            // If token came from OAuth hash, exchange it for user info
             const savedToken = localStorage.getItem('taskManagerToken');
             const savedUser = localStorage.getItem('taskManagerUser');
+
+            if (savedToken && !savedUser) {
+                const res = await fetch('http://localhost:5000/api/auth/social-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: savedToken })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('taskManagerUser', JSON.stringify(data.user));
+                    handleSuccessfulLogin(data.token, data.user);
+                    return;
+                }
+                localStorage.removeItem('taskManagerToken');
+            }
 
             if (savedToken && savedUser) {
                 try {
