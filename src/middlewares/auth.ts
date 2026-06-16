@@ -20,7 +20,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
                 message: 'Invalid or expired token.',
             });
         }
-        
+        req.userId = user.id;
         next();
     } catch (error) {
         console.error('Authentication error:', error);
