@@ -1,6 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 
+declare global {
+    namespace Express {
+        interface Request {
+            userId?: string;
+        }
+    }
+}
+
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
