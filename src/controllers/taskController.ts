@@ -3,19 +3,45 @@ import { supabase } from "../config/supabase";
 import { emitTaskEvent } from "../sockets/socketHandler";
 
 export const getTasks = async (req: Request, res: Response) => {
-  try {
-    const { data: tasks, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", req.userId)
-      .order("created_at", { ascending: false });
+  // Extract and validate query parameters for pagination, filtering, and sorting
+    try {
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
+        const offset = (page - 1) * limit;
+        const status = req.query.status as string;
+        const priority = req.query.priority as string;
+        const search = req.query.search as string;
+        const sort = (req.query.sort as string) || 'created_at';
+        const order = (req.query.order as string) || 'desc';
 
-    if (error) throw error;
+        let query = supabase
+            .from('tasks')
+            .select('*', { count: 'exact' })
+            .eq('user_id', req.userId);
 
-    res.status(200).json({ success: true, tasks });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+        if (status) query = query.eq('status', status);
+        if (priority) query = query.eq('priority', priority);
+        if (search) query = query.ilike('title', `%${search}%`);
+
+        const { data: tasks, error, count } = await query
+            .order(sort, { ascending: order === 'asc' })
+            .range(offset, offset + limit - 1);
+
+        if (error) throw error;
+
+        res.json({
+            success: true,
+            tasks,
+            pagination: {
+                page,
+                limit,
+                total: count || 0,
+                totalPages: Math.ceil((count || 0) / limit),
+            },
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
 
 export const createTask = async (req: Request, res: Response) => {
