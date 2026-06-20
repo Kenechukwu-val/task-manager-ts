@@ -5,3 +5,5 @@ minimumReleaseAgeExclude:
   - '@supabase/realtime-js@2.108.2'
   - '@supabase/storage-js@2.108.2'
   - '@supabase/supabase-js@2.108.2'
+allowBuilds:
+  esbuild: true
