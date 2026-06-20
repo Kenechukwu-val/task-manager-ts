@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { app, httpServer, io } from './app';
+import { httpServer, io } from './app';
 
 dotenv.config();
 
