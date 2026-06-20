@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { supabase, supabaseAdmin } from "../config/supabase";
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 export const socialLogin = async (req: Request, res: Response) => {
     try {
         const { token } = req.body;
@@ -36,14 +38,14 @@ export const supabaseCallback = async (req: Request, res: Response) => {
   const { code } = req.query;
 
   if (!code || typeof code !== "string") {
-    return res.redirect("/test-socket.html?error=no-code");
+    return res.redirect(`${FRONTEND_URL}/?error=no-code`);
   }
 
   // Exchange the auth code for a session
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.session) {
-    return res.redirect("/test-socket.html?error=auth-failed");
+    return res.redirect(`${FRONTEND_URL}/?error=auth-failed`);
   }
 
   const { user, session } = data;
@@ -61,10 +63,10 @@ export const supabaseCallback = async (req: Request, res: Response) => {
   );
 
   if (profileError) {
-    return res.redirect("/test-socket.html?error=profile-failed");
+    return res.redirect(`${FRONTEND_URL}/?error=profile-failed`);
   }
 
   res.redirect(
-    `/test-socket.html?token=${encodeURIComponent(session.access_token)}&name=${encodeURIComponent(user.email || "User")}`,
+    `${FRONTEND_URL}/tasks?token=${encodeURIComponent(session.access_token)}`,
   );
 };
