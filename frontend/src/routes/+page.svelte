@@ -4,30 +4,43 @@
     import { token, user } from '$lib/stores/auth';
     import { goto } from '$app/navigation';
 
-    onMount(async () => {
-        const hash = window.location.hash.substring(1);
-        if (!hash) return;
+    onMount(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+        // Extract the name from Google/GitHub provider metadata safely
+        const providerName = session.user.user_metadata?.full_name || 
+                             session.user.user_metadata?.name || 
+                             'Social User';
 
-        const hashParams = new URLSearchParams(hash);
-        const accessToken = hashParams.get('access_token');
-        if (!accessToken) return;
+        // Shape the object to match what your auth store expects
+            const localUserPayload = {
+                id: session.user.id,
+                email: session.user.email ?? '',
+                name: providerName
+            };
 
-        // Clear the hash immediately — token no longer visible in URL
-        window.history.replaceState({}, '', '/');
+                // 1. Update your local auth stores
+                token.set(session.access_token);
+                user.set(localUserPayload); // No more TypeScript error!
 
-        const res = await fetch('/api/auth/social-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: accessToken }),
-        });
-        const data = await res.json();
-        if (data.success) {
-            token.set(data.token);
-            user.set(data.user);
-            localStorage.setItem('taskManagerToken', data.token);
-            localStorage.setItem('taskManagerUser', JSON.stringify(data.user));
-            goto('/tasks');
+                // 2. Persist local storage keys
+                localStorage.setItem('taskManagerToken', session.access_token);
+                localStorage.setItem('taskManagerUser', JSON.stringify(localUserPayload));
+
+                // 3. Clean up the address bar cleanly (removes ?code=...)
+                if (window.location.search.includes('code=')) {
+                    window.history.replaceState({}, '', window.location.pathname);
+                }
+
+            // 4. Safely route the user to their tasks
+            await goto('/tasks');
         }
+    });
+
+        // Component cleanup logic
+        return () => {
+            subscription.unsubscribe();
+        };
     });
 
     let mode = $state<'login' | 'register'>('login');
@@ -78,12 +91,24 @@
     }
 
     async function socialLogin(provider: 'google' | 'github') {
-        const { data } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
-            options: { redirectTo: window.location.origin },
+            options: { 
+                // Redirect back to the exact login route; PKCE handles the code locally
+                redirectTo: window.location.origin + window.location.pathname,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'select_account',
+                }
+            },
         });
 
-        if (data.url) {
+        if (error) {
+            status = error.message;
+            return;
+        }
+
+        if (data?.url) {
             window.location.href = data.url;
         }
     }
