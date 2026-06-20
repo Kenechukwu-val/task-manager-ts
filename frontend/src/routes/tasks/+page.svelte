@@ -170,7 +170,7 @@
     <header>
         <h1>Task Manager</h1>
         <div class="user-info">
-            <span>{$user?.name || 'User'}</span>
+            <span>Welcome, {$user?.name || 'User'}</span>
             <button onclick={logout}>Logout</button>
         </div>
     </header>
