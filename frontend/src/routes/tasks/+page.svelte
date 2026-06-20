@@ -122,25 +122,6 @@
     }
 
     onMount(async () => {
-        // Check URL for OAuth callback token
-        const params = new URLSearchParams(window.location.search);
-        const urlToken = params.get('token');
-        if (urlToken) {
-            const res = await fetch('/api/auth/social-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: urlToken }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                token.set(data.token);
-                user.set(data.user);
-                localStorage.setItem('taskManagerToken', data.token);
-                localStorage.setItem('taskManagerUser', JSON.stringify(data.user));
-                window.history.replaceState({}, '', '/tasks');
-            }
-        }
-
         const savedToken = localStorage.getItem('taskManagerToken');
         if (!savedToken) {
             goto('/');
